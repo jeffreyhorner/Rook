@@ -1,0 +1,8 @@
+exportClass(RhttpdApp,RhttpdInputStream,RhttpdErrorStream)
+export(RhttpdApp,RhttpdInputStream,RhttpdErrorStream)
+export(RackTestApp)
+export(startRhttpd)
+export(stopRhttpd)
+exportClass(Utils,Multipart)
+export(Utils,Multipart)
+useDynLib("Rack",.registration = TRUE)
