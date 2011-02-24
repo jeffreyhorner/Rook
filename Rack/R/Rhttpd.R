@@ -1,19 +1,43 @@
 RhttpdApp <- setRefClass(
     'RhttpdApp',
-    fields = c('name','handler','path'),
+    fields = c('name','handler','path','handlerEnv','httpdOrig'),
     methods = list(
-	initialize = function(name=NULL,handler=NULL,...){
-	    if (is.null(name) || !is.character(name))
-		stop("Need a valid app name")
-	    if (is.null(handler) || typeof(handler) != 'closure')
-		stop("Need a valid function for the handler")
-	    name <<- name[1]
-	    handler <<- handler
-	    path <<- ifelse(name=='httpd','', paste('/custom',name,'',sep='/'))
+	initialize = function(handler=NULL,name=NULL,...){
+	    if (!is.null(name) && !is.character(name))
+		stop("Name must be a character")
+
+	    if (is.function(handler)){
+		.self$handler <- handler
+		.self$name <- if (is.character(name)) name else as.character(substitute(handler))
+		if (length(.self$name) > 1)
+		    stop("Need a valid name for this function")
+		.self$handlerEnv <- NULL
+	    } else if (is.character(handler) && file.exists(handler)){
+		.self$handler <- handler
+		.self$name <- if (is.character(name)) name else sub('.[rRsS]$','',basename(handler),perl=TRUE)
+		.self$handlerEnv <- new.env(parent=globalenv())
+		sys.source(.self$handler,envir=.self$handlerEnv)
+		if (!exists(.self$name,.self$handlerEnv))
+		    stop("Cannot find ",name," in handler",handler)
+		handlerEnv$.mtime <<- as.integer(file.info(handler)$mtime)
+	    } else {
+		stop("Need a valid function or file for the handler")
+	    }
+	    .self$path <- ifelse(.self$name=='httpd','', paste('/custom',.self$name,'',sep='/'))
+	    .self$httpdOrig <- NULL
 	    callSuper(...)
 	},
-	invokeHandler = function(env=NULL){
-	    handler(env)
+	invoke_handler = function(env=NULL){
+	    if (!is.null(handlerEnv)){
+		mtime <- as.integer(file.info(handler)$mtime)
+		if (mtime > handlerEnv$.mtime){
+		    sys.source(handler,envir=handlerEnv)
+		    handlerEnv$.mtime <<- mtime
+		}
+		handlerEnv[[name]](env)
+	    } else {
+		handler(env)
+	    }
 	}
     )
 )
@@ -33,7 +57,7 @@ RhttpdInputStream <- setRefClass(
 	    pos <<- 1
 	    callSuper(...)
 	},
-	readLines = function(n = -1L){
+	read_lines = function(n = -1L){
 	    if (n==0 || pos > length(postBody)) return(character())
 	    nls <- which(charToRaw('\n')==postBody[pos:length(postBody)])
 	    rv <- character(ifelse(n>-1L,n,0))
@@ -76,148 +100,138 @@ RhttpdErrorStream <- setRefClass(
     )
 )
 
-RackTestApp <- function(env){
-    envstr <- paste(capture.output(str(as.list(env)),file=NULL),collapse='\n')
-    postBody <- env$rack.input$readRaw()
-    save(env,postBody,file=tempfile('request.'))
-    postBodyChar <- rawToChar(postBody,multiple=TRUE)
-    postBodyChar[postBodyChar==''] <- '\\000'
-    postBodyChar <- paste(postBodyChar,collapse='')
-    randomString <- function() paste(letters[floor(runif(10,0,26))],collapse='')
-    randomNumber <- function() runif(1,0,26)
-    payload <- paste(
-    '<HTML><head><style type="text/css">\n',
-    'table { border: 1px solid #8897be; border-spacing: 0px; font-size: 10pt; }',
-    'td { border-bottom:1px solid #d9d9d9; border-left:1px solid #d9d9d9; border-spacing: 0px; padding: 3px 8px; }',
-    'td.l { font-weight: bold; width: 10%; }\n',
-    'tr.e { background-color: #eeeeee; border-spacing: 0px; }\n',
-    'tr.o { background-color: #ffffff; border-spacing: 0px; }\n',
-    '</style></head><BODY><H1>Canonical Test for Rack</H1>\n',
-    sprintf('<form enctype="multipart/form-data" method=POST action="%s/%s?called=%s">',env$SCRIPT_NAME,randomString(),randomNumber()),
-    'Enter a string: <input type=text name=name value=""><br>\n',
-    'Enter another string: <input type=text name=name value=""><br>\n',
-    'Upload a file: <input type=file name=fileUpload><br>\n',
-    'Upload another file: <input type=file name=anotherFile><br>\n',
-    '<input type=submit name=Submit><br><br>',
-    'Environment:<br><pre>',envstr,'</pre><br>',
-    'Post Body (raw):<br>',paste(postBody,collapse=' '), '<br><br>',
-    'Post Body (char):<br><pre style="border: 1px solid black">',postBodyChar, '</pre><br>',
-	sep=''
-    )
-    list(
-	status=200,
-	headers <- list(
-	    'Content-Type' = 'text/html'
-	),
-	body = payload
-    )
-}
+Rhttpd <- setRefClass(
+    'Rhttpd',
+    fields = c('appList'),
+    methods = list(
+	initialize = function(...){
+	    appList <<- list()
+	    callSuper(...)
+	},
+	start = function(listen='127.0.0.1',port=8181){
+	    if (length(appList) == 0)
+		add(RhttpdApp$new(system.file('exampleApps/RackTestApp.R',package='Rack')))
+	    
+	    .Internal(startHTTPD(listen, port))
+	    cat('\nServer started on host',listen,'and port',port,'. App urls are:\n\n')
+	    invisible(lapply(names(appList),function(i){
+		cat('\thttp://',listen,':',port,appList[[i]]$path,'\n',sep='')
+	    }))
+	},
+	stop = function(){
+	    .Internal(stopHTTPD())
+	},
+	add = function(app=NULL){
 
-startRhttpd <- function(app=NULL,listen="127.0.0.1",port=8181){
+	    if (!inherits(app,'RhttpdApp'))
+		stop("Need an RhttpdApp object")
 
-    if (is.null(app)){
-	app <- RhttpdApp$new(name='RackTestApp',handler=RackTestApp)
-    }
+	    appList[[app$name]] <<- app
+	    if(app$name=='httpd'){
+		.self$httpdOrig <- tools:::httpd
+		assignInNamespace(
+		    app$name, 
+		    function(path,query,postBody,headers) handler(app,path,query,postBody,headers),
+		    'tools'
+		)
+	    } else {
+		assign(
+		    app$name, 
+		    function(path,query,postBody,headers) handler(app,path,query,postBody,headers),
+		    tools:::.httpd.handlers.env
+		)
+	    }
 
-    # Stop any server already running
-    .Internal(stopHTTPD())
+	    invisible(TRUE)
+	},
+	remove = function(app=NULL){
+	    if (inherits(app,'RhttpdApp'))
+		name <- app$name
+	    else if (is.character(app))
+		name <- app
+	    else
+		stop("Can only remove by object or by app name")
 
-    # Now start the internal R web server. NOTE that
-    # this merges with the R console's REPL loop, so if you shut
-    # down R, you're shutting down the web server too.
-    if(app$name=='httpd'){
-	assignInNamespace(
-	    app$name, 
-	    function(path,query,postBody,headers) RhttpdHandler(app,path,query,postBody,headers),
-	    'tools'
-	)
-    } else {
-	assign(
-	    app$name, 
-	    function(path,query,postBody,headers) RhttpdHandler(app,path,query,postBody,headers),
-	    tools:::.httpd.handlers.env
-	)
-    }
-    cat('\n\nYour app is located here: http://',listen,':',port,app$path,'\n\n',sep='')
-    .Internal(startHTTPD(listen, port))
-}
+	    if (is.null(appList[[name]])) return(FALSE)
 
-parseRhttpdHeaders <- function(headers,env){
+	    appList[[name]] <<- NULL
+	    ret <- FALSE
+	    if(name=='httpd' && !is.null(httpdOrig)){
+		tools:::httpd <- httpdOrig
+		ret <- TRUE
+	    } else if (exists(name,tools:::.httpd.handlers.env)){
+		tools:::.httpd.handlers.env[[name]] <- NULL
+		ret <- TRUE
+	    }
+	    invisible(ret)
+	},
+	parse_headers = function(headers,env){
 
-    # For now, we treat the raw vector as a character.
-    # Later on, we'll need to parse the raw vector to properly
-    # decode *TEXT values.
+	    hlines <- strsplit(rawToChar(headers),'\n')[[1]]
 
-    hlines <- strsplit(rawToChar(headers),'\n')[[1]]
-
-    lapply(
-	strsplit(hlines,': '),
-	function(x) {
-	    assign(
-		paste('HTTP_',gsub('-','_',gsub('(\\w+)','\\U\\1',x[1],perl=TRUE)),sep=''),
-		x[2],
-		env
+	    lapply(
+		strsplit(hlines,': '),
+		function(x) {
+		    assign(
+			paste('HTTP_',gsub('-','_',gsub('(\\w+)','\\U\\1',x[1],perl=TRUE)),sep=''),
+			x[2],
+			env
+			)
+		}
 	    )
+	},
+	build_env = function(appPath,path,query,postBody,headers){
+	    env <- new.env(hash=TRUE,parent=emptyenv())
+
+	    parse_headers(headers,env)
+
+	    # remove HTTP_ from content length and type
+	    if (exists('HTTP_CONTENT_LENGTH',env) && exists('HTTP_CONTENT_TYPE',env)){
+		assign('CONTENT_LENGTH',env$`HTTP_CONTENT_LENGTH`,env)
+		assign('CONTENT_TYPE',env$`HTTP_CONTENT_TYPE`,env)
+		rm('HTTP_CONTENT_LENGTH','HTTP_CONTENT_TYPE',envir=env)
+	    }
+
+	    assign('SCRIPT_NAME',appPath,env)
+	    assign('PATH_INFO',sub(appPath,'',path,fixed=TRUE),env)
+	    assign('QUERY_STRING',
+		ifelse(is.null(query),
+		    '',
+		    paste(names(query),query,sep='=',collapse='&')
+		    ),
+		env
+		)
+	    assign('REQUEST_METHOD',ifelse(is.null(postBody),'GET','POST'),env)
+
+	    hostport <- strsplit(get('HTTP_HOST',env),':',fixed=TRUE)[[1]]
+
+	    assign('SERVER_NAME',hostport[1],env)
+	    assign('SERVER_PORT',hostport[2],env)
+
+	    assign('rack.version',packageDescription('Rack',fields='Version'),env)
+	    assign('rack.url_scheme','http',env)
+	    assign('rack.input',RhttpdInputStream$new(postBody),env)
+	    assign('rack.errors',RhttpdErrorStream$new(),env)
+
+	    env
+	},
+	handler = function(app,path,query,postBody,headers){
+	    res <- try(app$invoke_handler(Rhttpd$build_env(app$path,path,query,postBody,headers)))
+	    if (inherits(res,'try-error') || (is.character(res) && length(res) == 1))
+		res
+	    else {
+		if (is.character(res$body) && length(res$body) > 1){
+		    res$body <- paste(res$body,collapse='')
+		}
+		contentType <- res$headers$`Content-Type`;
+		res$headers$`Content-Type` <- NULL;
+		list(
+		    payload = res$body,
+		    `content-type` = contentType,
+		    headers = res$headers,
+		    `status code` = res$status
+		    )
+	    }
 	}
     )
-}
-
-buildRhttpdEnv <- function(appPath, path,query,postBody,headers){
-    env <- new.env(hash=TRUE,parent=emptyenv())
-
-    parseRhttpdHeaders(headers,env)
-
-    # remove HTTP_ from content length and type
-    if (exists('HTTP_CONTENT_LENGTH',env) && exists('HTTP_CONTENT_TYPE',env)){
-	assign('CONTENT_LENGTH',env$`HTTP_CONTENT_LENGTH`,env)
-	assign('CONTENT_TYPE',env$`HTTP_CONTENT_TYPE`,env)
-	rm('HTTP_CONTENT_LENGTH','HTTP_CONTENT_TYPE',envir=env)
-    }
-
-    assign('SCRIPT_NAME',appPath,env)
-    assign('PATH_INFO',sub(appPath,'',path,fixed=TRUE),env)
-    assign('QUERY_STRING',
-	ifelse(is.null(query),
-	    '',
-	    paste(names(query),query,sep='=',collapse='&')
-	),
-	env
-    )
-    assign('REQUEST_METHOD',ifelse(is.null(postBody),'GET','POST'),env)
-
-    hostport <- strsplit(get('HTTP_HOST',env),':',fixed=TRUE)[[1]]
-
-    assign('SERVER_NAME',hostport[1],env)
-    assign('SERVER_PORT',hostport[2],env)
-
-    assign('rack.version',packageDescription('Rack',fields='Version'),env)
-    assign('rack.url_scheme','http',env)
-    assign('rack.input',RhttpdInputStream$new(postBody),env)
-    assign('rack.errors',RhttpdErrorStream$new(),env)
-
-    env
-}
-
-RhttpdHandler <- function(app,path,query,postBody,headers){
-    cat('\n<Headers>\n',rawToChar(headers),'\n</Headers>\n',file=stderr())
-    res <- try(app$invokeHandler(buildRhttpdEnv(app$path,path,query,postBody,headers)))
-    if (inherits(res,'try-error') || (is.character(res) && length(res) == 1))
-	res
-    else {
-	if (is.character(res$body) && length(res$body) > 1){
-	    res$body <- paste(res$body,collapse='')
-	}
-	contentType <- res$headers$`Content-Type`;
-	res$headers$`Content-Type` <- NULL;
-	list(
-	    payload = res$body,
-	    `content-type` = contentType,
-	    headers = res$headers,
-	    `status code` = res$status
-	)
-    }
-}
-
-stopRhttpd <- function(){
-    .Internal(stopHTTPD())
-}
+)$new()

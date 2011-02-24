@@ -57,7 +57,7 @@ R_CallMethodDef callMethods[]  = {
 	{NULL, NULL, 0}
 };
 
-void R_init_rack(DllInfo *info) {
+void R_init_Rack(DllInfo *info) {
 	R_registerRoutines(info, NULL, callMethods, NULL, NULL);
-	R_useDynamicSymbols(info, FALSE);
+/*	R_useDynamicSymbols(info, FALSE);*/
 }

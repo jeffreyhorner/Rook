@@ -126,7 +126,7 @@ Utils <- setRefClass(
 	},
 	#parse_nested_query = function() {},
 	#normalize_params = function () {},
-	buildQuery = function(params) {
+	build_query = function(params) {
 	    # TODO: call escape here, need to vectorize it first
 	    paste(names(params),params,sep='=',collapse='&')
 	},
@@ -173,7 +173,7 @@ Utils <- setRefClass(
 	    set_cookie_header(header,key,'',timeZero(),path,domain,secure,httpOnly)
 	},
 	bytesize = function(string=NULL) { nchar(string,type='bytes') },
-	raw.match = function(needle,haystack,all=TRUE) .Call(rack:::rawmatch,needle,haystack,all),
+	raw.match = function(needle,haystack,all=TRUE) .Call(Rack:::rawmatch,needle,haystack,all),
 	timezero = function() structure(0,class=c('POSIXct','POSIXt')),
 	rfc2822 = function(ts){
 	    format(ts,format="%a, %d %b %Y %T GMT",tz='GMT')
@@ -229,6 +229,7 @@ Multipart <- setRefClass(
 	    i <- Utils$raw.match(boundaryEOL,read_buffer,all=FALSE)
 	    if (!length(i) || i != 1){
 		warning("bad content body")
+		input$rewind()
 		return(NULL)
 	    }
 
@@ -272,6 +273,7 @@ Multipart <- setRefClass(
 		}
 		if (is.null(head)){
 		    warning("Bad post payload: searching for a header")
+		    input$rewind()
 		    return(NULL)
 		} 
 
@@ -353,6 +355,7 @@ Multipart <- setRefClass(
 		}
 		if (is.null(value)){
 		    # bad post payload
+		    input$rewind()
 		    warning("Bad post payload: searching for a body part")
 		    return(NULL)
 		}
@@ -363,24 +366,28 @@ Multipart <- setRefClass(
 		if (read_buffer_len < 2 && unread == 0){
 		    # Bad stuff at the end. just return what we've got
 		    # and presume everything is okay.
+		    input$rewind()
 		    return(params)
 		}
 
 		# Valid ending
-		if (length(Utils$raw.match('--',read_buffer[1:2],all=FALSE)))
+		if (length(Utils$raw.match('--',read_buffer[1:2],all=FALSE))){
+		    input$rewind()
 		    return(params)
-
+		} 
 		# Skip past the EOL.
 		if (length(Utils$raw.match(EOL,read_buffer[1:EOL_size],all=FALSE))){
 		    slice_buffer(1,EOL_size)
 		} else {
 		    warning("Bad post body: EOL not present")
+		    input$rewind()
 		    return(params)
 		}
 
 		# another sanity check before we try to parse another part
 		if ((read_buffer_len + unread) < boundary_size){
 		    warning("Bad post body: unknown trailing bytes")
+		    input$rewind()
 		    return(params)
 		}
 	    }
