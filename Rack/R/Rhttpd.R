@@ -65,7 +65,7 @@ RhttpdInputStream <- setRefClass(
 	    for (i in nls){
 		rv[lc] <- rawToChar(postBody[pos:(pos+i-1)])
 		pos <<- pos + pos + i
-		lc <<- lc + 1
+		lc <- lc + 1
 		if (pos > length(postBody) || lc > n)
 		    break
 	    }

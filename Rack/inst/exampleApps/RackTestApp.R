@@ -1,11 +1,12 @@
 RackTestApp <- function(env){
     req <- Request$new(env)
+    res <- Response$new()
     envstr <- paste(capture.output(str(as.list(env)),file=NULL),collapse='\n')
     poststr <- paste(capture.output(str(req$POST()),file=NULL),collapse='\n')
     getstr <- paste(capture.output(str(req$GET()),file=NULL),collapse='\n')
     randomString <- function() paste(letters[floor(runif(10,0,26))],collapse='')
     randomNumber <- function() runif(1,0,26)
-    payload <- paste(
+    res$write( c(
     '<HTML><head><style type="text/css">\n',
     'table { border: 1px solid #8897be; border-spacing: 0px; font-size: 10pt; }',
     'td { border-bottom:1px solid #d9d9d9; border-left:1px solid #d9d9d9; border-spacing: 0px; padding: 3px 8px; }',
@@ -21,14 +22,7 @@ RackTestApp <- function(env){
     '<input type=submit name=Submit><br><br>',
     'Environment:<br><pre>',envstr,'</pre><br>',
     'Get:<br><pre>',getstr,'</pre><br>',
-    'Post:<br><pre>',poststr, '</pre><br><br>',
-	sep=''
-    )
-    list(
-	status=200,
-	headers <- list(
-	    'Content-Type' = 'text/html'
-	),
-	body = payload
-    )
+    'Post:<br><pre>',poststr, '</pre><br><br>'
+    ))
+    res$finish()
 }

@@ -135,9 +135,40 @@ Request <- setRefClass(
 
 Response <- setRefClass(
     'Response',
-    fields = c('body','status','header','length'),
+    fields = c('body','length','status','header','length'),
     methods = list(
-	initialize = function(body='',status=200,header=list()){
+	initialize = function(body='',status=200,header=list(),...){
+	    .self$status <- as.integer(status)
+	    .self$header <- as.environment(list('Content-Type'='text/html'))
+	    if (length(header) > 0)
+		.self$header < as.environment(c(as.list(.self$header),header))
+	    .self$body <- body 
+	    .self$length <- Utils$bytesize(.self$body)
+	    callSuper(...)
+	},
+	set_cookie = function(key,value){
+	    Utils$set_cookie_header(.self$header,key,value)
+	},
+	delete_cookie = function(key,value){
+	      Utils$delete_cookie_header(.self$header, key, value)
+	},
+	redirect = function(target,status=302){
+	    .self$status = as.integer(status)
+	    .self$header$Location = target
+	},
+	finish = function(){
+	    list(
+		status=.self$status,
+		headers = as.list(.self$header),
+		body = .self$body
+	    )
+	},
+	write = function(str){
+	    s <- paste(as.character(str),collapse='')
+	    .self$length <- .self$length + Utils$bytesize(s)
+	    .self$header$`Content-Length` <- .self$length
+	    .self$body <- paste(.self$body,s,sep='')
 	}
+
     )
 )
