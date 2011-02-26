@@ -135,39 +135,43 @@ Request <- setRefClass(
 
 Response <- setRefClass(
     'Response',
-    fields = c('body','length','status','header','length'),
+    fields = c('body','length','status','headers','length'),
     methods = list(
-	initialize = function(body='',status=200,header=list(),...){
+	initialize = function(body='',status=200,headers=list(),...){
 	    .self$status <- as.integer(status)
-	    .self$header <- as.environment(list('Content-Type'='text/html'))
-	    if (length(header) > 0)
-		.self$header < as.environment(c(as.list(.self$header),header))
+	    .self$headers <- as.environment(list('Content-Type'='text/html'))
+	    if (length(headers) > 0)
+		.self$headers < as.environment(c(as.list(.self$headers),headers))
 	    .self$body <- body 
 	    .self$length <- Utils$bytesize(.self$body)
 	    callSuper(...)
 	},
+	header = function(key,value) {
+	    if (missing(value)) headers[[key]]
+	    else headers[[key]] <<- value
+	},
 	set_cookie = function(key,value){
-	    Utils$set_cookie_header(.self$header,key,value)
+	    Utils$set_cookie_header(headers,key,value)
 	},
 	delete_cookie = function(key,value){
-	      Utils$delete_cookie_header(.self$header, key, value)
+	      Utils$delete_cookie_header(headers, key, value)
 	},
 	redirect = function(target,status=302){
-	    .self$status = as.integer(status)
-	    .self$header$Location = target
+	    status <<- as.integer(status)
+	    header('Location',target)
 	},
 	finish = function(){
 	    list(
-		status=.self$status,
-		headers = as.list(.self$header),
-		body = .self$body
+		status=status,
+		headers = as.list(headers),
+		body = body
 	    )
 	},
 	write = function(str){
 	    s <- paste(as.character(str),collapse='')
-	    .self$length <- .self$length + Utils$bytesize(s)
-	    .self$header$`Content-Length` <- .self$length
-	    .self$body <- paste(.self$body,s,sep='')
+	    length <<- length + Utils$bytesize(s)
+	    header('Content-Length',length)
+	    body <<- paste(body,s,sep='')
 	}
 
     )
