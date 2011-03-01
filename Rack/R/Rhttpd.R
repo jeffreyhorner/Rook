@@ -132,7 +132,7 @@ Rhttpd <- setRefClass(
 	    paste('http://',listenAddr,':',tools:::httpdPort,appList[[i]]$path,sep='')
 	},
 	launch = function(...){
-	    .self$start(launch=FALSE,quiet=TRUE)		
+	    .self$start(quiet=TRUE)		
 	    # Try to create a new app from the supplied arguments
 	    app <- RhttpdApp$new(...)
 	    if (add(app)){
@@ -150,7 +150,7 @@ Rhttpd <- setRefClass(
 	    else
 		stop("No app at index ",x)
 	},
-	start = function(listen='127.0.0.1',port=getOption('help.ports'),launch=TRUE,quiet=FALSE){
+	start = function(listen='127.0.0.1',port=getOption('help.ports'),quiet=FALSE){
 	    if (length(appList) == 0)
 		add(RhttpdApp$new(system.file('exampleApps/RackTestApp.R',package='Rack'),name='RackTest'))
 
@@ -163,10 +163,13 @@ Rhttpd <- setRefClass(
 		utils::flush.console()
 		return(tools:::httpdPort)
 	    }
-	    if(tools:::httpdPort > 0 && !quiet) 
+	    if(tools:::httpdPort > 0){
+		if (quiet) return()
 		base::stop("server already running on port ",tools:::httpdPort)
-	    else if (tools:::httpdPort < 0) 
+	    } else if (tools:::httpdPort < 0) {
+		if (quiet) return()
 		base::stop("server could not be started on an earlier attempt")
+	    }
 	    
 	    ports <- port
 	    if (is.null(ports)) {
@@ -211,10 +214,6 @@ Rhttpd <- setRefClass(
 		invisible(lapply(names(appList),function(i){
 		    cat('\thttp://',listen,':',tools:::httpdPort,appList[[i]]$path,'\n',sep='')
 		}))
-	    }
-	    if (launch){
-		if (!quiet) cat("Launching",names(appList)[1],"\n")
-		.self$launch(names(appList)[1],start=FALSE)
 	    }
 	},
 	stop = function(){

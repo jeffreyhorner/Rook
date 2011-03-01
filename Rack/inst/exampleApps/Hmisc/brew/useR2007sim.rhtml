@@ -18,7 +18,7 @@ rcontrol <- function(n) f(n,'control')
 rinterv <- function(n) f(n,'intervention')
 set.seed(211)
 x <- spower(rcontrol,rinterv,rcens, nc=350, ni=350, test=logrank, nsim=300)
-unlink(tempfile)
+#unlink(tempfile)
 #sink()
 %>
 <%=format(x,digits=5)%>
