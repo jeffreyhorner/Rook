@@ -31,40 +31,40 @@ The environment argument is a true R environment object which the
 application is free to modify. It is required to contain the following
 variables:
 
-REQUEST_METHOD: The HTTP request method, such as "GET" or "POST". This
+- REQUEST_METHOD: The HTTP request method, such as "GET" or "POST". This
     cannot ever be an empty string, and so is always required.
 
-SCRIPT_NAME:	The initial portion of the request URL‘s "path" that
+- SCRIPT_NAME:	The initial portion of the request URL‘s "path" that
     corresponds to the application object, so that the application knows
     its virtual "location". This may be an empty string, if the application
     corresponds to the "root" of the server.
 
-PATH_INFO:  The remainder of the request URL‘s "path", designating the
+- PATH_INFO:  The remainder of the request URL‘s "path", designating the
     virtual "location" of the request‘s target within the application. This
     may be an empty string, if the request URL targets the application root
     and does not have a trailing slash. This value may be percent-encoded
     when I originating from a URL.
 
-QUERY_STRING:	The portion of the request URL that follows the ?,
+- QUERY_STRING:	The portion of the request URL that follows the ?,
     if any. May be empty, but is always required!
 
-SERVER_NAME, SERVER_PORT:   When combined with SCRIPT_NAME and PATH_INFO,
+- SERVER_NAME, SERVER_PORT:   When combined with SCRIPT_NAME and PATH_INFO,
     these variables can be used to complete the URL. Note, however, that
     HTTP_HOST, if present, should be used in preference to SERVER_NAME for
     reconstructing the request URL. SERVER_NAME and SERVER_PORT can never
     be empty strings, and so are always required.
 
-HTTP_ Variables:    Variables corresponding to the client-supplied
+- HTTP_ Variables:    Variables corresponding to the client-supplied
     HTTP request headers (i.e., variables whose names begin with HTTP_). The
     presence or absence of these variables should correspond with the presence
     or absence of the appropriate HTTP header in the request.
 
 In addtion, the environment must include the following Rack-specific variables:
 
-rack.version:	    This version of Rack.
-rack.url_scheme:    http or https, depending on the request URL.
-rack.input:	    See below, the input stream.
-rack.errors:	    See below, the error stream.
+- rack.version:	    This version of Rack.
+- rack.url_scheme:    http or https, depending on the request URL.
+- rack.input:	    See below, the input stream.
+- rack.errors:	    See below, the error stream.
 
 The Input Stream
 ----------------
