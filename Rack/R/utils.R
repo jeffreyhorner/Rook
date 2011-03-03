@@ -170,9 +170,9 @@ Utils <- setRefClass(
 
 	    header$`Set-Cookie` <- paste(cookies[!d],collapse='\n')
 
-	    set_cookie_header(header,key,'',timeZero(),path,domain,secure,httpOnly)
+	    set_cookie_header(header,key,'',timezero(),path,domain,secure,httpOnly)
 	},
-	bytesize = function(string=NULL) { nchar(string,type='bytes') },
+	bytesize = function(string=NULL) nchar(string,type='bytes'),
 	raw.match = function(needle,haystack,all=TRUE) .Call(Rack:::rawmatch,needle,haystack,all),
 	timezero = function() structure(0,class=c('POSIXct','POSIXt')),
 	rfc2822 = function(ts){
