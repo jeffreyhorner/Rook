@@ -102,21 +102,89 @@ RhttpdErrorStream <- setRefClass(
 
 Rhttpd <- setRefClass(
     'Rhttpd',
-    fields = c('appList'),
+    fields = c('appList','listenAddr'),
     methods = list(
 	initialize = function(...){
 	    appList <<- list()
+	    listenAddr <<- '127.0.0.1'
 	    callSuper(...)
 	},
-	start = function(listen='127.0.0.1',port=8181){
+	launch = function(appName,start=TRUE){
+	    if (start) .self$start(launch=FALSE,quiet=TRUE)		
+	    appUrl <- NULL
+	    lapply(names(appList),function(i){
+		if (i==appName)
+		    appUrl <<- paste('http://',listenAddr,':',tools:::httpdPort,appList[[i]]$path,sep='')
+	    })
+	    if (!is.null(appUrl))
+		invisible(browseURL(appUrl))
+	    else
+		invisible(NULL)
+	},
+	start = function(listen='127.0.0.1',port=getOption('help.ports'),launch=TRUE,quiet=FALSE){
 	    if (length(appList) == 0)
 		add(RhttpdApp$new(system.file('exampleApps/RackTestApp.R',package='Rack')))
+
+	    env <- environment(tools::startDynamicHelp)
+	    if(nzchar(Sys.getenv("R_DISABLE_HTTPD"))) {
+		unlockBinding("httpdPort", env)
+		assign('httpdPort',-1L,env)
+		lockBinding("httpdPort", env)
+		warning("httpd server disabled by R_DISABLE_HTTPD", immediate. = TRUE)
+		utils::flush.console()
+		return(tools:::httpdPort)
+	    }
+	    if(tools:::httpdPort > 0 && !quiet) stop("server already running on port",tools:::httpdPort)
+	    else if (tools:::httpdPort < 0) stop("server could not be started on an earlier attempt")
 	    
-	    .Internal(startHTTPD(listen, port))
-	    cat('\nServer started on host',listen,'and port',port,'. App urls are:\n\n')
-	    invisible(lapply(names(appList),function(i){
-		cat('\thttp://',listen,':',port,appList[[i]]$path,'\n',sep='')
-	    }))
+	    ports <- port
+	    if (is.null(ports)) {
+		## Choose 10 random port numbers between 10000 and 32000.
+		## The random seed might match
+		## on multiple instances, so add the time as well.  But the
+		## time may only be accurate to seconds, so rescale it to
+		## 5 minute units.
+		ports <- 10000 + 22000*((stats::runif(10) + unclass(Sys.time())/300) %% 1)
+	    }
+	    ports <- as.integer(ports)
+	    for(i in seq_along(ports)) {
+		## the next can throw an R-level error,
+		## so do not assign port unless it succeeds.
+		status <- .Internal(startHTTPD(listen, ports[i]))
+		if (status == 0L) {
+		    OK <- TRUE
+		    listenAddr <<- listen
+		    unlockBinding("httpdPort", env)
+		    assign('httpdPort',ports[i],env)
+		    lockBinding("httpdPort", env)
+		    break
+		}
+		if (status != -2L) break
+		## so status was -2, which means port in use
+	    }
+	    if (OK) {
+		if (!quiet) message(" done")
+		utils::flush.console()
+		## FIXME: actually test the server
+	    } else {
+		warning("failed to start the httpd server", immediate. = TRUE)
+		utils::flush.console()
+		unlockBinding("httpdPort", env)
+		assign('httpdPort',-1L,env)
+		lockBinding("httpdPort", env)
+		return()
+	    }
+
+	    if (!quiet){
+		cat('\nServer started on host',listen,'and port',tools:::httpdPort,'. App urls are:\n\n')
+		invisible(lapply(names(appList),function(i){
+		    cat('\thttp://',listen,':',tools:::httpdPort,appList[[i]]$path,'\n',sep='')
+		}))
+	    }
+	    if (launch){
+		if (!quiet) cat("Launching",names(appList)[1],"\n")
+		.self$launch(names(appList)[1],start=FALSE)
+	    }
 	},
 	stop = function(){
 	    .Internal(stopHTTPD())

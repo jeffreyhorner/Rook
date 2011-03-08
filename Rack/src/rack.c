@@ -3,7 +3,7 @@
 #include <R_ext/Rdynload.h>
 
 SEXP rawmatch( SEXP needle, SEXP haystack, SEXP allMatches){
-    int i, j, k, i1, i2, n1, n2;
+    int i, j, k, i1, n1, n2;
     Rbyte *x1, *x2;
     Rboolean all;
     SEXP ans, newans;
