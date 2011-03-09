@@ -21,6 +21,7 @@ Here is a basic Rack application that implements 'hello world':
 	    headers <- list(
 		'Content-Type' = 'text/html'
 	    ),
+	    body=body
 	)
     }
 
