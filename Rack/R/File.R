@@ -12,7 +12,7 @@ File <- setRefClass(
 	    if (length(grep('..',path_info,fixed=TRUE)))
 		return(forbidden())
 
-	    path <<- file.path(root,path_info)
+	    path <<- normalizePath(file.path(root,path_info))
 
 
 	    if (file_test('-d',path))

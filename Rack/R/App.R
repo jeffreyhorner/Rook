@@ -1,9 +1,9 @@
 # Abstract Rack::App and Rack::Middleware that Builder and related apps inherit from.
-setRefClass(
+App <- setRefClass(
     'App',
     fields = c('app'),
     methods = list(
-	initialize = function(app=function(){},...) {
+	initialize = function(app=NULL,...) {
 	    app <<- app
 	    callSuper(...)
 	},
@@ -15,8 +15,9 @@ setRefClass(
     )
 )
 
-setRefClass(
+Middleware <- setRefClass(
     'Middleware',
+    contains = 'App',
     methods = list(
 	initialize = function(...) {
 	    callSuper(...)

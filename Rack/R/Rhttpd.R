@@ -3,45 +3,35 @@ RhttpdApp <- setRefClass(
     fields = c('app','name','path','appEnv'),
     methods = list(
 	initialize = function(app=NULL,name=NULL,...){
-	    if (!is.null(name) && !is.character(name))
-		stop("Name must be a character")
+	    if (is.null(name) || !is.character(name))
+		stop("Need a proper app 'name'")
+
+	    .self$name <- name
 
 	    if (is.character(app) && file.exists(app)){
 		.self$appEnv <- new.env(parent=globalenv())
 		sys.source(app,envir=.self$appEnv)
-		if (!is.null(name) && exists(name,.self$appEnv))
-		    .self$name <- name
-
-		fname <- sub('.[sSrR]$','',basename(app))
-		if (exists(fname,.self$appEnv))
-		    .self$name <- fname
-		else if (exists('app',.self$appEnv))
-		    .self$name <- 'app'
-		if (is.null(.self$name))
-		    stop("Cannot find a suitable app in file",app)
-
-		.self$app <- get(.self$name,.self$appEnv)
 		appEnv$.mtime <<- as.integer(file.info(app)$mtime)
 		appEnv$.appFile <<- app
+
+		if (exists(.self$name,.self$appEnv))
+		    .self$app <- get(.self$name,.self$appEnv)
+		else if (exists('app',.self$appEnv))
+		    .self$app <- get('app',.self$appEnv)
+		else
+		    stop("Cannot find a suitable app in file",app)
+
 	    } else {
 		.self$app <- app
 		.self$name <- name
 		.self$appEnv <- NULL
 	    }
 
-	    if (is.function(.self$app)){
-		if (is.null(.self$name))
-		    .self$name <- if (is.character(name)) name else as.character(substitute(handler))
-		if (length(.self$name) < 1)
-		    stop("Need a valid name for this function")
-
-	    } else if (is(.self$app,'refClass') && 'call' %in% getRefClass(.self$app)$methods()){
-		if (is.null(.self$name))
-		    stop("app needs a name")
-
-	    } else {
+	    if (
+		!is.function(.self$app) && 
+		!((is(.self$app,'refClass') && 'call' %in% getRefClass(.self$app)$methods()))
+	    )
 		stop("App must be either a closure or a reference class that implements 'call'")
-	    }
 
 	    .self$path <- ifelse(.self$name=='httpd','', paste('/custom',.self$name,'',sep='/'))
 	    callSuper(...)
@@ -50,11 +40,19 @@ RhttpdApp <- setRefClass(
 	    if (!is.null(appEnv)){
 		oldwd <- setwd(dirname(appEnv$.appFile))
 		on.exit(setwd(oldwd))
-		mtime <- as.integer(file.info(appEnv$.appFile)$mtime)
+
+		file_path = basename(appEnv$.appFile)
+		mtime <- as.integer(file.info(file_path)$mtime)
+
 		if (mtime > appEnv$.mtime){
-		    sys.source(handler,envir=appEnv)
-		    app <<- get(name,appEnv)
 		    appEnv$.mtime <<- mtime
+		    sys.source(file_path,envir=appEnv)
+		    if (exists(name,appEnv))
+			app <<- get(name,appEnv)
+		    else if (exists('app',appEnv))
+			app <<- get('app',appEnv)
+		    else
+			stop("Cannot find a suitable app in file",appEnv$.appFile)
 		}
 	    }
 	    if (is(app,'function')) app(env)
@@ -133,21 +131,8 @@ Rhttpd <- setRefClass(
 	full_url = function(i){
 	    paste('http://',listenAddr,':',tools:::httpdPort,appList[[i]]$path,sep='')
 	},
-	launch = function(...,start=TRUE){
-	    if (start) .self$start(launch=FALSE,quiet=TRUE)		
-	    args <- list(...)
-
-	    if (length(args) < 0) 
-		stop("launch takes an app name or arguments to RhttpdApp$new(...)")
-
-	    if (is.character(args[[1]])){
-		appName <- args[[1]]
-		if (appName %in% names(appList)){
-		    browseURL(full_url(which(appName == names(appList))))
-		    return()
-		}
-	    }
-
+	launch = function(...){
+	    .self$start(launch=FALSE,quiet=TRUE)		
 	    # Try to create a new app from the supplied arguments
 	    app <- RhttpdApp$new(...)
 	    if (add(app)){
@@ -167,7 +152,7 @@ Rhttpd <- setRefClass(
 	},
 	start = function(listen='127.0.0.1',port=getOption('help.ports'),launch=TRUE,quiet=FALSE){
 	    if (length(appList) == 0)
-		add(RhttpdApp$new(system.file('exampleApps/RackTestApp.R',package='Rack')))
+		add(RhttpdApp$new(system.file('exampleApps/RackTestApp.R',package='Rack'),name='RackTest'))
 
 	    env <- environment(tools::startDynamicHelp)
 	    if(nzchar(Sys.getenv("R_DISABLE_HTTPD"))) {
@@ -331,9 +316,14 @@ Rhttpd <- setRefClass(
 	    assign('rack.input',RhttpdInputStream$new(postBody),env)
 	    assign('rack.errors',RhttpdErrorStream$new(),env)
 
+	    if (debug()>1)
+		str(as.list(env))
 	    env
 	},
 	handler = function(app,path,query,postBody,headers){
+	    if (debug()>0){
+		cat('Request:',path,'\n')
+	    }
 	    res <- try(app$invoke_handler(Rhttpd$build_env(app$path,path,query,postBody,headers)))
 	    if (inherits(res,'try-error') || (is.character(res) && length(res) == 1))
 		res
@@ -350,15 +340,23 @@ Rhttpd <- setRefClass(
 		ret <- list(
 		    payload = res$body,
 		    `content-type` = contentType,
-		    headers = res$headers,
+		    headers = paste(names(res$headers),': ',res$headers,sep=''),
 		    `status code` = res$status
-		    )
+		)
 
 		# Change the name of payload to file in the case that
 		# payload *is* a filename
-		if (!is.null(names(res$body)) && names(res$body)[1] == 'file')
+		if (!is.null(names(res$body)) && names(res$body)[1] == 'file'){
 		    names(ret) <- c('file',names(ret)[-1])
+		    # Delete content length as Rhttpd will add it
+		    res$headers$`Content-Length` <- NULL;
+		    ret$headers = paste(names(res$headers),': ',res$headers,sep='')
+		}
 
+		if (debug()>0){
+		    cat('Response:\n')
+		    str(ret)
+		}
 		ret
 	    }
 	},
@@ -378,6 +376,13 @@ Rhttpd <- setRefClass(
 	    cat("To open an app in your browser, type Rhttpd$open(i) where i is a number from the list above \n")
 	    invisible()
 	},
-	show = function() print()
+	show = function() print(),
+	debug = function(){
+	    d <- getOption('Rhttpd_debug')
+	    if (!is.null(d))
+		as.integer(d)
+	    else
+		0
+	}
     )
 )$new()

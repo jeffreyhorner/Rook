@@ -1,4 +1,4 @@
-RackTestApp <- function(env){
+app <- function(env){
     req <- Request$new(env)
     res <- Response$new()
     envstr <- paste(capture.output(str(as.list(env)),file=NULL),collapse='\n')
