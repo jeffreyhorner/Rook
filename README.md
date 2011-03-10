@@ -6,24 +6,44 @@ This specification defines the interface between web servers and R applications.
 Rack applications
 -----------------
 
-A Rack application is an R closure that takes exactly one argument, an environment,
-and returns a list with three named elements: the 'status' , the 'headers', and the 'body'.
+A Rack application is an R reference class object that implements a 'call'
+method or an R closure that takes exactly one argument, an environment,
+and returns a list with three named elements: the 'status', the 'headers',
+and the 'body'.
 
 Hello World
 -----------
 
-Here is a basic Rack application that implements 'hello world':
+Here is a basic Rack application as a closure that implements 'hello world':
 
     function(env){
 	body = paste('<h1>Hello World! This is Rack',env$rack.version,'.</h1>')
 	list(
-	    status=200,
-	    headers <- list(
+	    status = 200L,
+	    headers = list(
 		'Content-Type' = 'text/html'
 	    ),
-	    body=body
+	    body = body
 	)
     }
+
+And the equivalent referenc class example:
+
+    setRefClass(
+	'HelloWorld',
+	methods = list(
+	    call = function(env){
+		body = paste('<h1>Hello World! This is Rack',env$rack.version,'.</h1>')
+		list(
+		    status = 200L,
+		    headers = list(
+			'Content-Type' = 'text/html'
+		    ),
+		    body = body
+		)
+	    }
+	)
+    )
 
 The Environment
 ---------------
@@ -105,4 +125,3 @@ The Body
 This is either a character or raw vector. If the character vector is
 named with value 'file' then value of the vector is interpreted as the
 location of a file.
-

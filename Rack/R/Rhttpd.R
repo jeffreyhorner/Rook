@@ -1,43 +1,64 @@
 RhttpdApp <- setRefClass(
     'RhttpdApp',
-    fields = c('name','handler','path','handlerEnv','httpdOrig'),
+    fields = c('app','name','path','appEnv'),
     methods = list(
-	initialize = function(handler=NULL,name=NULL,...){
+	initialize = function(app=NULL,name=NULL,...){
 	    if (!is.null(name) && !is.character(name))
 		stop("Name must be a character")
 
-	    if (is.function(handler)){
-		.self$handler <- handler
-		.self$name <- if (is.character(name)) name else as.character(substitute(handler))
-		if (length(.self$name) > 1)
-		    stop("Need a valid name for this function")
-		.self$handlerEnv <- NULL
-	    } else if (is.character(handler) && file.exists(handler)){
-		.self$handler <- handler
-		.self$name <- if (is.character(name)) name else sub('.[rRsS]$','',basename(handler),perl=TRUE)
-		.self$handlerEnv <- new.env(parent=globalenv())
-		sys.source(.self$handler,envir=.self$handlerEnv)
-		if (!exists(.self$name,.self$handlerEnv))
-		    stop("Cannot find ",name," in handler",handler)
-		handlerEnv$.mtime <<- as.integer(file.info(handler)$mtime)
+	    if (is.character(app) && file.exists(app)){
+		.self$appEnv <- new.env(parent=globalenv())
+		sys.source(app,envir=.self$appEnv)
+		if (!is.null(name) && exists(name,.self$appEnv))
+		    .self$name <- name
+
+		fname <- sub('.[sSrR]$','',basename(app))
+		if (exists(fname,.self$appEnv))
+		    .self$name <- fname
+		else if (exists('app',.self$appEnv))
+		    .self$name <- 'app'
+		if (is.null(.self$name))
+		    stop("Cannot find a suitable app in file",app)
+
+		.self$app <- get(.self$name,.self$appEnv)
+		appEnv$.mtime <<- as.integer(file.info(app)$mtime)
+		appEnv$.appFile <<- app
 	    } else {
-		stop("Need a valid function or file for the handler")
+		.self$app <- app
+		.self$name <- name
+		.self$appEnv <- NULL
 	    }
+
+	    if (is.function(.self$app)){
+		if (is.null(.self$name))
+		    .self$name <- if (is.character(name)) name else as.character(substitute(handler))
+		if (length(.self$name) < 1)
+		    stop("Need a valid name for this function")
+
+	    } else if (is(.self$app,'refClass') && 'call' %in% getRefClass(.self$app)$methods()){
+		if (is.null(.self$name))
+		    stop("app needs a name")
+
+	    } else {
+		stop("App must be either a closure or a reference class that implements 'call'")
+	    }
+
 	    .self$path <- ifelse(.self$name=='httpd','', paste('/custom',.self$name,'',sep='/'))
-	    .self$httpdOrig <- NULL
 	    callSuper(...)
 	},
 	invoke_handler = function(env=NULL){
-	    if (!is.null(handlerEnv)){
-		mtime <- as.integer(file.info(handler)$mtime)
-		if (mtime > handlerEnv$.mtime){
-		    sys.source(handler,envir=handlerEnv)
-		    handlerEnv$.mtime <<- mtime
+	    if (!is.null(appEnv)){
+		oldwd <- setwd(dirname(appEnv$.appFile))
+		on.exit(setwd(oldwd))
+		mtime <- as.integer(file.info(appEnv$.appFile)$mtime)
+		if (mtime > appEnv$.mtime){
+		    sys.source(handler,envir=appEnv)
+		    app <<- get(name,appEnv)
+		    appEnv$.mtime <<- mtime
 		}
-		handlerEnv[[name]](env)
-	    } else {
-		handler(env)
 	    }
+	    if (is(app,'function')) app(env)
+	    else app$call(env)
 	}
     )
 )
@@ -102,24 +123,47 @@ RhttpdErrorStream <- setRefClass(
 
 Rhttpd <- setRefClass(
     'Rhttpd',
-    fields = c('appList','listenAddr'),
+    fields = c('appList','listenAddr','httpdOrig'),
     methods = list(
 	initialize = function(...){
 	    appList <<- list()
 	    listenAddr <<- '127.0.0.1'
 	    callSuper(...)
 	},
-	launch = function(appName,start=TRUE){
+	full_url = function(i){
+	    paste('http://',listenAddr,':',tools:::httpdPort,appList[[i]]$path,sep='')
+	},
+	launch = function(...,start=TRUE){
 	    if (start) .self$start(launch=FALSE,quiet=TRUE)		
-	    appUrl <- NULL
-	    lapply(names(appList),function(i){
-		if (i==appName)
-		    appUrl <<- paste('http://',listenAddr,':',tools:::httpdPort,appList[[i]]$path,sep='')
-	    })
-	    if (!is.null(appUrl))
-		invisible(browseURL(appUrl))
+	    args <- list(...)
+
+	    if (length(args) < 0) 
+		stop("launch takes an app name or arguments to RhttpdApp$new(...)")
+
+	    if (is.character(args[[1]])){
+		appName <- args[[1]]
+		if (appName %in% names(appList)){
+		    browseURL(full_url(which(appName == names(appList))))
+		    return()
+		}
+	    }
+
+	    # Try to create a new app from the supplied arguments
+	    app <- RhttpdApp$new(...)
+	    if (add(app)){
+		appName <- app$name
+		browseURL(full_url(which(appName == names(appList))))
+		return()
+	    }
+
+	    stop("No app to launch")
+	},
+	open = function(x){
+	    x <- as.integer(x)
+	    if (!is.null(appList[[x]]))
+		invisible(browseURL(full_url(x)))
 	    else
-		invisible(NULL)
+		stop("No app at index ",x)
 	},
 	start = function(listen='127.0.0.1',port=getOption('help.ports'),launch=TRUE,quiet=FALSE){
 	    if (length(appList) == 0)
@@ -134,8 +178,10 @@ Rhttpd <- setRefClass(
 		utils::flush.console()
 		return(tools:::httpdPort)
 	    }
-	    if(tools:::httpdPort > 0 && !quiet) stop("server already running on port",tools:::httpdPort)
-	    else if (tools:::httpdPort < 0) stop("server could not be started on an earlier attempt")
+	    if(tools:::httpdPort > 0 && !quiet) 
+		base::stop("server already running on port ",tools:::httpdPort)
+	    else if (tools:::httpdPort < 0) 
+		base::stop("server could not be started on an earlier attempt")
 	    
 	    ports <- port
 	    if (is.null(ports)) {
@@ -187,6 +233,10 @@ Rhttpd <- setRefClass(
 	    }
 	},
 	stop = function(){
+	    env <- environment(tools::startDynamicHelp)
+	    unlockBinding("httpdPort", env)
+	    assign('httpdPort',0L,env) 
+	    lockBinding("httpdPort", env)
 	    .Internal(stopHTTPD())
 	},
 	add = function(app=NULL){
@@ -288,18 +338,46 @@ Rhttpd <- setRefClass(
 	    if (inherits(res,'try-error') || (is.character(res) && length(res) == 1))
 		res
 	    else {
+		# Only need to handle the case where body is a vector of strings
+		# We presume that if res$body is a location to a file then the
+		# app has so named it. We also presume that res$body may be
+		# a raw vector, but we let the internal web server deal with that.
 		if (is.character(res$body) && length(res$body) > 1){
 		    res$body <- paste(res$body,collapse='')
 		}
 		contentType <- res$headers$`Content-Type`;
 		res$headers$`Content-Type` <- NULL;
-		list(
+		ret <- list(
 		    payload = res$body,
 		    `content-type` = contentType,
 		    headers = res$headers,
 		    `status code` = res$status
 		    )
+
+		# Change the name of payload to file in the case that
+		# payload *is* a filename
+		if (!is.null(names(res$body)) && names(res$body)[1] == 'file')
+		    names(ret) <- c('file',names(ret)[-1])
+
+		ret
 	    }
-	}
+	},
+	print = function() {
+	    if (tools:::httpdPort > 0){
+		cat("Server started on ",listenAddr,":",tools:::httpdPort,"\n",sep='')
+	    } else {
+		cat("Server stopped\n")
+	    }
+	    if (length(appList) == 0){
+		cat("No apps installed\n")
+		return()
+	    }
+	    for (i in 1:length(appList)){
+		cat('[',i,'] ',full_url(i),'\n',sep='')
+	    }
+	    cat("To open an app in your browser, type Rhttpd$open(i) where i is a number from the list above \n")
+	    invisible()
+	},
+	show = function() print()
     )
 )$new()

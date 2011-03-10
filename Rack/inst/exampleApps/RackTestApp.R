@@ -16,7 +16,7 @@ RackTestApp <- function(env){
     '</style></head><BODY><H1>Canonical Test for Rack</H1>\n',
     sprintf('<form enctype="multipart/form-data" method=POST action="%s/%s?called=%s">',env$SCRIPT_NAME,randomString(),randomNumber()),
     'Enter a string: <input type=text name=name value=""><br>\n',
-    'Enter another string: <input type=text name=name value=""><br>\n',
+    'Enter another string: <input type=text name=name2 value=""><br>\n',
     'Upload a file: <input type=file name=fileUpload><br>\n',
     'Upload another file: <input type=file name=anotherFile><br>\n',
     '<input type=submit name=Submit><br><br>',
