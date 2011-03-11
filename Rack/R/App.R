@@ -1,3 +1,9 @@
+is_rackable <- function(app){
+    if (is(app,'refClass')) TRUE
+    else if (is(app,'function')) TRUE
+    else FALSE
+}
+
 # Abstract Rack::App and Rack::Middleware that Builder and related apps inherit from.
 App <- setRefClass(
     'App',

@@ -27,11 +27,8 @@ RhttpdApp <- setRefClass(
 		.self$appEnv <- NULL
 	    }
 
-	    if (
-		!is.function(.self$app) && 
-		!((is(.self$app,'refClass') && 'call' %in% getRefClass(.self$app)$methods()))
-	    )
-		stop("App must be either a closure or a reference class that implements 'call'")
+	    if (!is_rackable(.self$app))
+		stop("App is not rackable'")
 
 	    .self$path <- ifelse(.self$name=='httpd','', paste('/custom',.self$name,sep='/'))
 	    callSuper(...)
@@ -323,7 +320,7 @@ Rhttpd <- setRefClass(
 	    if (debug()>0){
 		cat('Request:',path,'\n')
 	    }
-	    res <- try(app$invoke_handler(Rhttpd$build_env(app$path,path,query,postBody,headers)))
+	    res <- try(app$invoke_handler(build_env(app$path,path,query,postBody,headers)))
 	    if (inherits(res,'try-error') || (is.character(res) && length(res) == 1))
 		res
 	    else {
@@ -376,11 +373,10 @@ Rhttpd <- setRefClass(
 	    invisible()
 	},
 	show = function() print(),
-	list = function() print(),
 	debug = function(){
 	    d <- getOption('Rhttpd_debug')
 	    if (!is.null(d)) as.integer(d)
 	    else 0
 	}
     )
-)$new()
+)
