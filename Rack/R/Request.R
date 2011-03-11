@@ -127,6 +127,7 @@ Request <- setRefClass(
 	    else
 		paste(path(),'?',query_string(),sep='')
 	},
+	to_url = function(url) paste(script_name(),url,sep=''),
 	accept_encoding = function(){
 	},
 	ip = function() env[['REMOTE_ADDR']]

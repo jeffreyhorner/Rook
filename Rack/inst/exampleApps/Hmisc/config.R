@@ -4,45 +4,46 @@ library(Hmisc)
 Brewery <- setRefClass(
     'Brewery',
     contains = 'Middleware',
-    fields = c('url','root'),
+    fields = c('url','root','opt'),
     methods = list(
 	initialize = function(url,root,...){
 	    url <<- paste('^',url,sep='')
 	    root <<- root
-	    callSuper(...)
+	    opt <<- list2env(list(...))
+	    callSuper()
 	},
 	call = function(env){
 	    req <- Rack::Request$new(env)
 	    res <- Rack::Response$new()
-	    brew_env <- new.env()
-	    env[['req']] = req;
-	    env[['res']] = res;
+	    opt[['req']] <<- req;
+	    opt[['res']] <<- res;
 	    path = env[["PATH_INFO"]]
 	    file_path = file.path(root,path)
-	    cat('brewing',file_path,'\n')
 	    if (length(grep(url,path))>0 && file.exists(file_path)){
-		oldwd <- setwd(dirname(file_path))
-		on.exit(setwd(oldwd))
-		res$write(capture.output(brew(basename(file_path),envir=brew_env)))
+		res$write(capture.output(brew(file_path,envir=opt,chdir=TRUE)))
 		res$finish()
 	    } else
 		app$call(env)
 	}
     )
 )
-
+dir.create(file.path(tempdir(),'plots'),showWarnings=FALSE)
 app <- Rack::Builder$new(
     Rack::Static$new(
-	urls = c('css','images','javascript'),
+	urls = c('/css','/images','/javascript'),
 	root = '.'
     ),
-    Brewery$new(url='brew',root='.'),
+    Rack::Static$new(urls='/plots',root=tempdir()),
+    Brewery$new(
+	url='/brew',
+	root='.',
+	imagepath=file.path(tempdir(),'plots'),
+	imageurl='../plots/'
+    ),
     Rack::App$new(function(env) {
 	req <- Rack::Request$new(env)
 	res <- Rack::Response$new()
-	url <- paste(req$script_name(),'brew/useR2007.rhtml',sep='')
-	cat('calling redirect to ',url,'\n')
-	res$redirect(paste(req$script_name(),'brew/useR2007.rhtml',sep=''))
+	res$redirect(req$to_url('/brew/useR2007.rhtml'))
 	res$finish()
     })
 )

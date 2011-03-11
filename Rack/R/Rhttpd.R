@@ -33,7 +33,7 @@ RhttpdApp <- setRefClass(
 	    )
 		stop("App must be either a closure or a reference class that implements 'call'")
 
-	    .self$path <- ifelse(.self$name=='httpd','', paste('/custom',.self$name,'',sep='/'))
+	    .self$path <- ifelse(.self$name=='httpd','', paste('/custom',.self$name,sep='/'))
 	    callSuper(...)
 	},
 	invoke_handler = function(env=NULL){
@@ -376,12 +376,11 @@ Rhttpd <- setRefClass(
 	    invisible()
 	},
 	show = function() print(),
+	list = function() print(),
 	debug = function(){
 	    d <- getOption('Rhttpd_debug')
-	    if (!is.null(d))
-		as.integer(d)
-	    else
-		0
+	    if (!is.null(d)) as.integer(d)
+	    else 0
 	}
     )
 )$new()
