@@ -9,9 +9,11 @@ RhttpdApp <- setRefClass(
 	    .self$name <- name
 
 	    if (is.character(app) && file.exists(app)){
+		oldwd <- setwd(dirname(app))
+		on.exit(setwd(oldwd))
 		.self$appEnv <- new.env(parent=globalenv())
-		sys.source(app,envir=.self$appEnv)
-		appEnv$.mtime <<- as.integer(file.info(app)$mtime)
+		sys.source(basename(app),envir=.self$appEnv)
+		appEnv$.mtime <<- as.integer(file.info(basename(app))$mtime)
 		appEnv$.appFile <<- app
 
 		if (exists(.self$name,.self$appEnv))
