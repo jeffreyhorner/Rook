@@ -101,28 +101,29 @@ Utils <- setRefClass(
 	    if (length(x) == 0) return(list())
 
 	    z <- x != ''
-	    params <- list()
+	    params <- new.env()
+            params$params <- list()
 	    if (length(z)){
-		parseEqual <- function(i){
+		parseEqual <- function(i,params){
 		    m <- regexpr('=',i)[1L]
 		    if (m > 0){
 			if (m == 1){
-			    params[['']] <<- unescape(i)
+			    params$params[['']] <- unescape(i)
 			} else { 
 			    ilen <- nchar(i)
 			    if (m == ilen){
-				params[[i]] <<- ''
+				params$params[[i]] <- ''
 			    } else {
-				params[[substr(i,1,m-1)]] <<- escape(substr(i,m+1,ilen))
+				params$params[[substr(i,1,m-1)]] <- unescape(substr(i,m+1,ilen))
 			    }
 			}
 		    } else {
-			params[[i]] <<- NA
+			params$params[[i]] <- NA
 		    }
 		}
-		lapply(x[z],parseEqual)
+		lapply(x[z],parseEqual,params)
 	    }
-	    params
+	    params$params
 	},
 	#parse_nested_query = function() {},
 	#normalize_params = function () {},
@@ -222,51 +223,51 @@ Multipart <- setRefClass(
 	    EOLEOL_size = Utils$bytesize(EOLEOL)
 	    EOL_size = Utils$bytesize(EOL)
 
-	    read_buffer <- input$read(boundaryEOL_size)
-	    read_buffer_len <- length(read_buffer)
-	    unread <- content_length - boundary_size
+            buf <- new.env()
+	    buf$bufsize <- 16384 # Never read more than bufsize bytes.
+	    buf$read_buffer <- input$read(boundaryEOL_size)
+	    buf$read_buffer_len <- length(buf$read_buffer)
+	    buf$unread <- content_length - boundary_size
 
-	    i <- Utils$raw.match(boundaryEOL,read_buffer,all=FALSE)
+	    i <- Utils$raw.match(boundaryEOL,buf$read_buffer,all=FALSE)
 	    if (!length(i) || i != 1){
 		warning("bad content body")
 		input$rewind()
 		return(NULL)
 	    }
 
-	    # Never read more than bufsize bytes.
-	    bufsize <- 16384
-	    fill_buffer <- function(){
-		buf <- input$read(ifelse(bufsize < unread, bufsize, unread))
+	    fill_buffer <- function(x){
+		buf <- input$read(ifelse(x$bufsize < x$unread, x$bufsize, x$unread))
 		buflen <- length(buf)
 		if (buflen > 0){
-		    read_buffer <<- c(read_buffer,buf)
-		    read_buffer_len <<- length(read_buffer)
-		    unread <<- unread - buflen
+		    x$read_buffer <- c(x$read_buffer,buf)
+		    x$read_buffer_len <- length(x$read_buffer)
+		    x$unread <- x$unread - buflen
 		}
 	    }
 
 	    # Slices off the beginning part of read_buffer.
-	    slice_buffer <- function(i,size){
-		slice <- if(i > 1) read_buffer[1:(i-1)] else read_buffer[1] 
-		read_buffer <<- if(size < read_buffer_len) read_buffer[(i+size):read_buffer_len] else raw()
-		read_buffer_len <<- length(read_buffer)
+	    slice_buffer <- function(i,size,x){
+		slice <- if(i > 1) x$read_buffer[1:(i-1)] else x$read_buffer[1] 
+		x$read_buffer <- if(size < x$read_buffer_len) x$read_buffer[(i+size):x$read_buffer_len] else raw()
+		x$read_buffer_len <- length(x$read_buffer)
 		slice
 	    }
 
 	    # prime the read_buffer
-	    read_buffer <- raw()
-	    fill_buffer()
+	    buf$read_buffer <- raw()
+	    fill_buffer(buf)
 
 	    while(TRUE) {
 		head <- value <- NULL
 		filename <- content_type <- name <- NULL
 		while(is.null(head)){
-		    i <- Utils$raw.match(EOLEOL,read_buffer,all=FALSE)
+		    i <- Utils$raw.match(EOLEOL,buf$read_buffer,all=FALSE)
 		    if (length(i)){
-			head <- slice_buffer(i,EOLEOL_size)
+			head <- slice_buffer(i,EOLEOL_size,buf)
 			break
-		    } else if (unread){
-			fill_buffer()
+		    } else if (buf$unread){
+			fill_buffer(buf)
 		    } else {
 			break # we've read everything and still haven't seen a valid head
 		    }
@@ -317,9 +318,9 @@ Multipart <- setRefClass(
 		name <- sub('(?si)Content-Disposition:.*\\s+name="?([^";]*).*"?','\\1',head,perl=TRUE)
 
 		while(TRUE){
-		    i <- Utils$raw.match(boundary,read_buffer,all=FALSE)
+		    i <- Utils$raw.match(boundary,buf$read_buffer,all=FALSE)
 		    if (length(i)){
-			value <- slice_buffer(i,boundary_size)
+			value <- slice_buffer(i,boundary_size,buf)
 			if (length(value)){
 
 			    # Drop EOL only values
@@ -347,8 +348,8 @@ Multipart <- setRefClass(
 			    }
 			} 
 			break
-		    } else if (unread){
-			fill_buffer()
+		    } else if (buf$unread){
+			fill_buffer(buf)
 		    } else {
 			break # we've read everything and still haven't seen a valid value
 		    }
@@ -361,9 +362,9 @@ Multipart <- setRefClass(
 		}
 
 		# Now search for ending markers or the beginning of another part
-		while (read_buffer_len < 2 && unread) fill_buffer()
+		while (buf$read_buffer_len < 2 && buf$unread) fill_buffer(buf)
 
-		if (read_buffer_len < 2 && unread == 0){
+		if (buf$read_buffer_len < 2 && buf$unread == 0){
 		    # Bad stuff at the end. just return what we've got
 		    # and presume everything is okay.
 		    input$rewind()
@@ -371,13 +372,13 @@ Multipart <- setRefClass(
 		}
 
 		# Valid ending
-		if (length(Utils$raw.match('--',read_buffer[1:2],all=FALSE))){
+		if (length(Utils$raw.match('--',buf$read_buffer[1:2],all=FALSE))){
 		    input$rewind()
 		    return(params)
 		} 
 		# Skip past the EOL.
-		if (length(Utils$raw.match(EOL,read_buffer[1:EOL_size],all=FALSE))){
-		    slice_buffer(1,EOL_size)
+		if (length(Utils$raw.match(EOL,buf$read_buffer[1:EOL_size],all=FALSE))){
+		    slice_buffer(1,EOL_size,buf)
 		} else {
 		    warning("Bad post body: EOL not present")
 		    input$rewind()
@@ -385,7 +386,7 @@ Multipart <- setRefClass(
 		}
 
 		# another sanity check before we try to parse another part
-		if ((read_buffer_len + unread) < boundary_size){
+		if ((buf$read_buffer_len + buf$unread) < boundary_size){
 		    warning("Bad post body: unknown trailing bytes")
 		    input$rewind()
 		    return(params)

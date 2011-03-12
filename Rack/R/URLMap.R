@@ -7,11 +7,11 @@ URLMap <- setRefClass(
 	    apps <- list(...)
 	    map <<- list()
 	    for (url in names(apps)){
-		app <- apps[[url]]
-		if (is(app,'function'))
-		    map[[length(map)+1]] <<- App$new(app)
-		else if (is_rackable(app))
-		    map[length(map)+1] <<- app
+		x <- apps[[url]]
+		if (is(x,'function'))
+		    map[[length(map)+1]] <<- App$new(x)
+		else if (is_rackable(x))
+		    map[length(map)+1] <<- x
 		else
 		    stop("App for url ",url," not rackable")
 	    }
