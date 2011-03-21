@@ -6,7 +6,7 @@ Response <- setRefClass(
 	    .self$status <- as.integer(status)
 	    .self$headers <- as.environment(list('Content-Type'='text/html'))
 	    if (length(headers) > 0)
-		.self$headers < as.environment(c(as.list(.self$headers),headers))
+		.self$headers <- as.environment(c(as.list(.self$headers),headers))
 	    .self$body <- body 
 	    .self$length <- Utils$bytesize(.self$body)
 	    callSuper(...)
