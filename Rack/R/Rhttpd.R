@@ -143,12 +143,14 @@ Rhttpd <- setRefClass(
 	    stop("No app to launch")
 	},
 	open = function(x){
+	    if (missing(x)) return(print())
 	    x <- as.integer(x)
 	    if (!is.null(appList[[x]]))
 		invisible(browseURL(full_url(x)))
 	    else
 		stop("No app at index ",x)
 	},
+	browse = function(x) open(x),
 	start = function(listen='127.0.0.1',port=getOption('help.ports'),quiet=FALSE){
 	    if (length(appList) == 0)
 		add(RhttpdApp$new(system.file('exampleApps/RackTestApp.R',package='Rack'),name='RackTest'))
@@ -162,13 +164,21 @@ Rhttpd <- setRefClass(
 		utils::flush.console()
 		return(tools:::httpdPort)
 	    }
+
+	    if(grepl('rstudio',base::.Platform$GUI,ignore.case=TRUE)){
+		if (!missing(port))
+		    warning("RStudio has already started the web server on port ",tools:::httpdPort)
+		return(invisible())
+	    }
+
 	    if(tools:::httpdPort > 0){
-		if (quiet) return()
-		base::stop("server already running on port ",tools:::httpdPort)
+		if (quiet) return(invisible())
+		base::stop("server already running on port ",tools:::httpdPort,". Consider calling the stop() method first.")
 	    } else if (tools:::httpdPort < 0) {
-		if (quiet) return()
+		if (quiet) return(invisible())
 		base::stop("server could not be started on an earlier attempt")
 	    }
+
 	    
 	    ports <- port
 	    if (is.null(ports)) {
