@@ -1,6 +1,5 @@
 URLMap <- setRefClass(
     'URLMap',
-    contains = 'Middleware',
     fields = c('map'),
     methods = list(
 	initialize = function(...){
@@ -11,7 +10,7 @@ URLMap <- setRefClass(
 		if (is(x,'function'))
 		    map[[length(map)+1]] <<- App$new(x)
 		else if (is_rackable(x))
-		    map[length(map)+1] <<- x
+		    map[[length(map)+1]] <<- x
 		else
 		    stop("App for url ",url," not rackable")
 	    }

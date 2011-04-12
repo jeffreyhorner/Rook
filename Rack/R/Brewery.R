@@ -6,7 +6,14 @@ Brewery <- setRefClass(
 	initialize = function(url,root,...){
 	    url <<- paste('^',url,sep='')
 	    root <<- root
-	    opt <<- list2env(list(...))
+	    opts <- list(...)
+	    if (length(opts)>0){
+		opt <<- try(list2env(opts),silent=TRUE)
+		if (inherits(opt,'try-error'))
+		    stop('Optional arguments must be named')
+	    } else {
+		opt <<- new.env()
+	    }
 	    callSuper()
 	},
 	call = function(env){

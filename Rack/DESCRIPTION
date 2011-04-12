@@ -5,7 +5,8 @@ Version: 1.0
 Date: 2011-01-24
 Author: Jeffrey Horner <jeffrey.horner@gmail.com>
 Maintainer: Jeffrey Horner <jeffrey.horner@gmail.com>
-Description: Web interface for R
-Depends: R (>= 2.13.0), utils, tools, methods
+Description: This package contains the Rack specification and
+ convenience software for building and running Rack applications.
+Depends: R (>= 2.13.0), utils, tools, methods, brew
 License: GPL-2
 LazyLoad: yes

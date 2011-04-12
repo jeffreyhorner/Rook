@@ -15,7 +15,7 @@ Request <- setRefClass(
 
 	    # The set of media-types. Requests that do not indicate
 	    # one of the media types presents in this list will not be eligible
-	    # for param parsing like soap attachments or generic multiparts
+	    # for param parsing like soap attachments or generic multiparts.
 	    PARSEABLE_DATA_MEDIA_TYPES <<- c(
 	      'multipart/related',
 	      'multipart/mixed'

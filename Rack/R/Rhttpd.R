@@ -127,6 +127,13 @@ Rhttpd <- setRefClass(
 	    listenAddr <<- '127.0.0.1'
 	    callSuper(...)
 	},
+	finalize = function(){
+	    cat("calling finalize on Rhttpd object\n")
+	    if (length(appList) == 0) return()
+	    for (i in 1:length(appList)){
+		remove(appList[[i]])
+	    }
+	},
 	full_url = function(i){
 	    paste('http://',listenAddr,':',tools:::httpdPort,appList[[i]]$path,sep='')
 	},
@@ -144,11 +151,21 @@ Rhttpd <- setRefClass(
 	},
 	open = function(x){
 	    if (missing(x)) return(print())
-	    x <- as.integer(x)
-	    if (!is.null(appList[[x]]))
-		invisible(browseURL(full_url(x)))
-	    else
-		stop("No app at index ",x)
+	    if (is.numeric(x) || is.integer(x)){
+		x <- as.integer(x)
+		if (!is.null(appList[[x]]))
+		    return(invisible(browseURL(full_url(x))))
+		else
+		    stop("No app at index ",x)
+	    } else if (is.character(x)){
+		for (i in 1:length(appList)){
+		    if (appList[[i]]$name==x){
+			return(invisible(browseURL(full_url(x))))
+		    }
+		}
+		stop("No app named",x)
+	    }
+	    stop("Argument must be an integer or character")
 	},
 	browse = function(x) open(x),
 	start = function(listen='127.0.0.1',port=getOption('help.ports'),quiet=FALSE){
@@ -271,7 +288,7 @@ Rhttpd <- setRefClass(
 		tools:::httpd <- httpdOrig
 		ret <- TRUE
 	    } else if (exists(name,tools:::.httpd.handlers.env)){
-		tools:::.httpd.handlers.env[[name]] <- NULL
+		rm(list=name,pos=tools:::.httpd.handlers.env)
 		ret <- TRUE
 	    }
 	    invisible(ret)
