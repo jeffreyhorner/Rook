@@ -8,13 +8,53 @@
 \description{
 An Abstract class for building Rack Middleware applications. Middleware apps either handle the incoming web request or hand off the request to the Rack app defined in the field of the same name.
 }
+\examples{
+# Middleware apps are typically instantiated in the argument list of
+# Builder$new(), but here is stand-alone example.
+# 
+# Once your browser loads the app, you will see something like this in
+# your location bar: http://127.0.0.1:28649/custom/middle. Add '/foo'
+# onto the end of that and reload.
+
+setRefClass(
+    'FooBar',
+    contains = 'Middleware',
+    methods = list(
+	initialize = function(...){
+	    # app to defer to.
+	    callSuper(app=App$new(function(env){
+		res <- Response$new()
+		res$write("<h1>I'm the deferred app.</h1>")
+		res$finish()
+	    }))
+	},
+	call = function(env){
+	    req <- Request$new(env)
+	    res <- Response$new()
+	    if (length(grep('foo',req$path_info()))){
+		res$write("<h1>I'm the middleware app.</h1>")	
+		return(res$finish())
+	    } else {
+		app$call(env)
+	    }
+	}
+    )
+)
+s <- Rhttpd$new()
+s$start(quiet=TRUE)
+s$add(RhttpdApp$new(name="middle",app=getRefClass('FooBar')$new()))
+\dontrun{
+s$browse('middle') # Opens a browser window to the app.
+}
+rm(s)
+}
 \section{Extends}{
-Class \code{"\linkS4class{App}"}, directly.
+Class \code{"\link{App}"}.
 }
 \seealso{
 The following classes implement Middleware: 
-    \code{\linkS4class{Brewery}},\code{\linkS4class{Static}}, and
-    \code{\linkS4class{URLMap}}.    
+    \code{"\link{Brewery}"},\code{"\link{Static}"}, and
+    \code{"\link{URLMap}"}.    
 }
 \section{Fields}{
   \describe{
@@ -24,10 +64,6 @@ The following classes implement Middleware:
 \section{Methods}{
   \describe{
     \item{\code{set_app(app)}:}{ The app that will handle the request if this Middleware app does not. }
-    \item{\code{initialize(...)}:}{ create a new Middleware object. Called by extending class's \code{initialize()} method.}
   }
-
-The following methods are inherited (from the corresponding class):
-call ("App"), initialize ("App")
 }
 \keyword{classes}

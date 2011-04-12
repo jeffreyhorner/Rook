@@ -6,7 +6,9 @@
 Rack: A web server interface and package for R
 }
 \description{
-    This help page defines the Rack specification. For others see:
+    This help page defines the Rack specification. It borrows heavily from Ruby's Rack project: \url{http://rack.rubyforge.org/}.
+
+    For other help documents, see:
 }
 
 \section{Rack applications}{

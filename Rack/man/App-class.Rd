@@ -6,18 +6,16 @@
 
 \title{Class \code{"App"}}
 \description{
-Abstract class from which Middleware and Builder inherit.
+Abstract class from which Middleware and Builder inherit. Provides the \code{app} field.
+
+\code{"App"} can also be used to instantiate referenc classed applications wrapped around a function. See \code{"\link{Middleware}"} for an example.
 }
 \section{Fields}{
   \describe{
     \item{\code{app}:}{A Rackable app.}
   }
 }
-\section{Methods}{
-  \describe{
-    \item{\code{call(env)}:}{ Invokes the applications (called by the web server). }
-    \item{\code{initialize(app, ...)}:}{ Sets the \code{app} field.}
-  }
+\seealso{
+\code{"\link{is_rackable}"}, \code{"\link{Builder}"}, and \code{"\link{Middleware}"}.
 }
-\seealso{is_rackable}
 \keyword{classes}

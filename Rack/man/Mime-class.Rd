@@ -2,45 +2,20 @@
 \Rdversion{1.1}
 \docType{class}
 \alias{Mime-class}
+\alias{Mime}
 
-\title{Class \code{"Mime"}}
+\title{Class \code{"Mime"} and object \code{"Mime"}}
 \description{
-%%  ~~ A concise (1-5 lines) description of what the class is. ~~
-}
-\section{Extends}{
-
-All reference classes extend and inherit methods from \code{"\linkS4class{envRefClass}"}.
-
-}
-\references{
-%%  ~~put references to the literature/web site here~~
-}
-\author{
-%%  ~~who you are~~
-}
-\note{
-%%  ~~further notes~~
-}
-
-%% ~Make other sections like Warning with \section{Warning }{....} ~
-
-\seealso{
-%%  ~~objects to See Also as \code{\link{~~fun~~}}, ~~~
-%%  ~~or \code{\linkS4class{CLASSNAME}} for links to other classes ~~~
+A convenience object for determining the MIME type of a file name.
 }
 \examples{
-showClass("Mime")
+Mime$file_extname('foo.png')
+Mime$mime_type('.png')
 }
 \keyword{classes}
-\section{Fields}{
-  \describe{
-    \item{\code{MIME_TYPES}:}{Object of class \code{ANY} ~~ }
-  }
-}
 \section{Methods}{
   \describe{
-    \item{\code{initialize(...)}:}{ ~~ }
-    \item{\code{file_extname(fname)}:}{ ~~ }
-    \item{\code{mime_type(ext, fallback)}:}{ ~~ }
+    \item{\code{file_extname(fname)}:}{ Returns the file extentions for the given file.}
+    \item{\code{mime_type(ext, fallback)}:}{ Returns the MIME type given the file extension. Besure to include the dot character in \code{ext}. If no match is found, then the fallback MIME type is returned.}
   }
 }

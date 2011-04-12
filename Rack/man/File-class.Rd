@@ -2,49 +2,37 @@
 \Rdversion{1.1}
 \docType{class}
 \alias{File-class}
+\alias{File}
 
 \title{Class \code{"File"}}
 \description{
-%%  ~~ A concise (1-5 lines) description of what the class is. ~~
-}
-\section{Extends}{
-
-All reference classes extend and inherit methods from \code{"\linkS4class{envRefClass}"}.
-
-}
-\references{
-%%  ~~put references to the literature/web site here~~
-}
-\author{
-%%  ~~who you are~~
-}
-\note{
-%%  ~~further notes~~
-}
-
-%% ~Make other sections like Warning with \section{Warning }{....} ~
-
-\seealso{
-%%  ~~objects to See Also as \code{\link{~~fun~~}}, ~~~
-%%  ~~or \code{\linkS4class{CLASSNAME}} for links to other classes ~~~
+A Rack application that serves static files from a root directory, according to the path info of the Rack request.
 }
 \examples{
-showClass("File")
+# This example serves all your files in /etc (on UNIX and Mac only).
+#
+# Note that when you open the application, you will see the word
+# 'Forbidden'. "File" doesn's serve directories, so you must amend the
+# url in the location bar with the file you want to view. Try adding passwd.
+
+s <- Rhttpd$new()
+s$start(quiet=TRUE)
+s$add(RhttpdApp$new(name="etc",app=File$new('/etc')))
+\dontrun{
+s$browse('etc') # Opens a browser window to the app.
 }
-\keyword{classes}
-\section{Fields}{
-  \describe{
-    \item{\code{root}:}{Object of class \code{ANY} ~~ }
-    \item{\code{path_info}:}{Object of class \code{ANY} ~~ }
-    \item{\code{path}:}{Object of class \code{ANY} ~~ }
-  }
+rm(s)
 }
 \section{Methods}{
-  \describe{
-    \item{\code{forbidden()}:}{ ~~ }
-    \item{\code{call(env)}:}{ ~~ }
-    \item{\code{serving()}:}{ ~~ }
-    \item{\code{initialize(root, ...)}:}{ ~~ }
-    \item{\code{not_found()}:}{ ~~ }
-  }
+\describe{
+    \item{\code{new(root,...):}}{
+	\code{root} is the name of the directory from where to serve files.
+    }
+}}
+\section{Extends}{
+Class \code{"\link{Middleware}"}.
 }
+\seealso{
+\code{"\link{Rhttpd}"} and \code{"\link{RhttpdApp}"}.
+}
+\keyword{classes}
