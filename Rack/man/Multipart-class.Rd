@@ -8,16 +8,35 @@
 \description{
 A convenience object for parsing multipart/form-data POST payloads.
 }
-\seealso{
-%%  ~~objects to See Also as \code{\link{~~fun~~}}, ~~~
-%%  ~~or \code{\linkS4class{CLASSNAME}} for links to other classes ~~~
-}
 \examples{
-showClass("Multipart")
+s <- Rhttpd$new()
+s$start(quiet=TRUE)
+s$add(RhttpdApp$new(name="multi",
+    app=function(env){
+	req <- Request$new(env)
+	res <- Response$new()
+	res$write('<form enctype="multipart/form-data" method=POST>')
+	res$write('Upload a file: <input type=file name=fileUpload>')
+	res$write('<input type=submit></form><br>')
+	post <- Multipart$parse(env)
+	if (length(post)){
+	    poststr <- paste(capture.output(str(post),file=NULL),collapse='\n')
+	    res$write(c('<pre>',poststr,'</pre>'))
+	}
+	res$finish()
+    }
+))
+\dontrun{
+s$browse('multi') # Opens a browser window to the app.
 }
-\keyword{classes}
+rm(s)
+}
+\seealso{
+\code{"\link{Rhttpd}"}, \code{"\link{RhttpdApp}"}, \code{"\link{Request}"}, and \code{"\link{Response}"}.
+}
 \section{Methods}{
   \describe{
-    \item{\code{parse(env)}:}{ Returns parsed POST payload as a named list.}
+    \item{\code{parse(env)}:}{ Returns parsed POST payload as a named list. \code{env} is a Rack created environment. see the \code{"\link{Rack}"} specification for more information.}
   }
 }
+\keyword{classes}

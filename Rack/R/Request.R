@@ -108,7 +108,15 @@ Request <- setRefClass(
 	},
 	referrer = function() referer(),
 	user_agent = function() env[['HTTP_USER_AGENT']],
-	cookies = function(){ },
+	cookies = function(){
+	    if (exists('rack.request.cookie_list',env))
+		return(env[['rack.request.cookie_list']])
+
+	    if (!is.null(env[['HTTP_COOKIE']]))
+		env[['rack.request.cookie_list']] <<- Utils$parse_query(env[['HTTP_COOKIE']])
+	    else
+		env[['rack.request.cookie_list']] <<- NULL
+	},
 	xhr = function() {
 	    (exists('HTTP_X_REQUESTED_WITH',env) && 
 	    env[['HTTP_X_REQUESTED_WITH']] == 'XMLHttpRequest')
@@ -139,8 +147,7 @@ Request <- setRefClass(
 	    }
 	    newurl
 	},
-	accept_encoding = function(){
-	},
+	accept_encoding = function() env[['HTTP_ACCEPT_ENCODING']],
 	ip = function() env[['REMOTE_ADDR']]
     )
 )
