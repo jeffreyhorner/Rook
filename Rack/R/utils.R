@@ -135,6 +135,7 @@ Utils <- setRefClass(
 	escape_html = function(string) {
 	    string <- gsub('&','&amp;',string)
 	    string <- gsub('<','&lt;',string)
+	    string <- gsub('>','&gt;',string)
 	    string <- gsub("'",'&#39;',string)
 	    string <- gsub('"','&quot;',string)
 	    string

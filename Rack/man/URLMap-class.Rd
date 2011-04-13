@@ -2,50 +2,51 @@
 \Rdversion{1.1}
 \docType{class}
 \alias{URLMap-class}
+\alias{URLMap}
 
 \title{Class \code{"URLMap"}}
 \description{
-%%  ~~ A concise (1-5 lines) description of what the class is. ~~
+A \code{"\link{Rack}"} application that maps url paths to other \code{Rack} applications.
 }
-\section{Extends}{
-Class \code{"\linkS4class{Middleware}"}, directly.
-Class \code{"\linkS4class{App}"}, by class "Middleware", distance 2.
-
-All reference classes extend and inherit methods from \code{"\linkS4class{envRefClass}"}.
-
-}
-\references{
-%%  ~~put references to the literature/web site here~~
-}
-\author{
-%%  ~~who you are~~
-}
-\note{
-%%  ~~further notes~~
-}
-
-%% ~Make other sections like Warning with \section{Warning }{....} ~
-
-\seealso{
-%%  ~~objects to See Also as \code{\link{~~fun~~}}, ~~~
-%%  ~~or \code{\linkS4class{CLASSNAME}} for links to other classes ~~~
+\seealso{ 
+\code{"\link{Rhttpd}"} and \code{"\link{RhttpdApp}"}.
 }
 \examples{
-showClass("URLMap")
+s <- Rhttpd$new()
+s$add(RhttpdApp$new(
+    name="pingpong",
+    app=Rack::URLMap$new(
+	'/ping' = function(env){
+	    req <- Rack::Request$new(env)
+	    res <- Rack::Response$new()
+	    res$write(sprintf('<h1><a href="\%s">Pong</a></h1>',req$to_url("/pong")))
+	    res$finish()
+	},
+	'/pong' = function(env){
+	    req <- Rack::Request$new(env)
+	    res <- Rack::Response$new()
+	    res$write(sprintf('<h1><a href="\%s">Ping</a></h1>',req$to_url("/ping")))
+	    res$finish()
+	},
+	'/?' = function(env){
+	    req <- Rack::Request$new(env)
+	    res <- Rack::Response$new()
+	    res$redirect(req$to_url('/pong'))
+	    res$finish()
+	}
+    )
+))
+s$start(quiet=TRUE)
+\dontrun{
+s$browse('pingpong')
+}
+s$remove('pingpong')
+s$stop()
+rm(s)
 }
 \keyword{classes}
-\section{Fields}{
-  \describe{
-    \item{\code{app}:}{Object of class \code{ANY} ~~ }
-    \item{\code{map}:}{Object of class \code{ANY} ~~ }
-  }
-}
 \section{Methods}{
   \describe{
-    \item{\code{call(env)}:}{ ~~ }
-    \item{\code{initialize(...)}:}{ ~~ }
+    \item{\code{new(...)}:}{ Creates a \code{Rack} application. All arguments must be \code{Rack} applications and named as in the example.}
   }
-
-The following methods are inherited (from the corresponding class):
-initialize ("Middleware"), set_app ("Middleware"), call ("App"), initialize ("App")
 }

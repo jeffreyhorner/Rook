@@ -20,7 +20,7 @@ URLMap <- setRefClass(
 	call = function(env){
 	    path <- env[['PATH_INFO']]
 	    for (url in names(map)){
-		if (length(grep(url,path)))
+		if (grepl(url,path))
 		    return(map[[url]]$call(env))
 	    }
 	    body <- paste("File not found:",path,"\n")

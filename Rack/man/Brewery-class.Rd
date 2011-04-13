@@ -6,7 +6,7 @@
 
 \title{Class \code{"Brewery"}}
 \description{
-A Middleware class for mapping URLs to a directory of files that are subsequently passed to brew. When a file is brewed, the two variables \code{req} (an object of class Request) and \code{res} (an object of class Response) are available for use.
+A \code{"\link{Middleware}"} class for mapping URLs to a directory of files that are subsequently passed to brew. When a file is brewed, the two variables \code{req} (an object of class Request) and \code{res} (an object of class Response) are available for use.
 
 }
 \section{Methods}{

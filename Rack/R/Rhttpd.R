@@ -128,7 +128,6 @@ Rhttpd <- setRefClass(
 	    callSuper(...)
 	},
 	finalize = function(){
-	    cat("calling finalize on Rhttpd object\n")
 	    if (length(appList) == 0) return()
 	    for (i in 1:length(appList)){
 		remove(appList[[i]])
@@ -277,8 +276,10 @@ Rhttpd <- setRefClass(
 		name <- app$name
 	    else if (is.character(app))
 		name <- app
+	    else if (is.numeric(app) || is.integer(app))
+		name <- appList[[app]]$name
 	    else
-		stop("Can only remove by object or by app name")
+		stop("Can only remove by object, app name, or index.")
 
 	    if (is.null(appList[[name]])) return(FALSE)
 
@@ -398,7 +399,7 @@ Rhttpd <- setRefClass(
 	    for (i in 1:length(appList)){
 		cat('[',i,'] ',full_url(i),'\n',sep='')
 	    }
-	    cat("To open an app in your browser, type Rhttpd$open(i) where i is a number from the list above \n")
+	    cat("\nTo open an app in your browser,  call open(i) where i is a number from the list above \n")
 	    invisible()
 	},
 	show = function() print(),

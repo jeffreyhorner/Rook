@@ -2,52 +2,40 @@
 \Rdversion{1.1}
 \docType{class}
 \alias{Response-class}
+\alias{Response}
 
 \title{Class \code{"Response"}}
 \description{
-%%  ~~ A concise (1-5 lines) description of what the class is. ~~
+A convenience class for creating \code{"\link{Rack}"} responses.
 }
-\section{Extends}{
-
-All reference classes extend and inherit methods from \code{"\linkS4class{envRefClass}"}.
-
-}
-\references{
-%%  ~~put references to the literature/web site here~~
-}
-\author{
-%%  ~~who you are~~
-}
-\note{
-%%  ~~further notes~~
-}
-
-%% ~Make other sections like Warning with \section{Warning }{....} ~
-
 \seealso{
-%%  ~~objects to See Also as \code{\link{~~fun~~}}, ~~~
-%%  ~~or \code{\linkS4class{CLASSNAME}} for links to other classes ~~~
+\code{"\link{Rhttpd}"}, \code{"\link{RhttpdApp}"}, and \code{"\link{Request}".}
 }
 \examples{
-showClass("Response")
+s <- Rhttpd$new()
+s$start(quiet=TRUE)
+s$add(RhttpdApp$new(name="response",
+    app=function(env){
+	req <- Request$new(env)
+	res <- Response$new()
+	res$write('hello')
+	res$finish()
+    }
+))
+\dontrun{
+s$browse('response') # Opens a browser window to the app.
+}
+rm(s)
 }
 \keyword{classes}
-\section{Fields}{
-  \describe{
-    \item{\code{body}:}{Object of class \code{ANY} ~~ }
-    \item{\code{length}:}{Object of class \code{ANY} ~~ }
-    \item{\code{status}:}{Object of class \code{ANY} ~~ }
-    \item{\code{headers}:}{Object of class \code{ANY} ~~ }
-  }
-}
 \section{Methods}{
   \describe{
-    \item{\code{header(key, value)}:}{ ~~ }
-    \item{\code{redirect(target, status)}:}{ ~~ }
-    \item{\code{write(str)}:}{ ~~ }
-    \item{\code{initialize(body, status, headers, ...)}:}{ ~~ }
-    \item{\code{set_cookie(key, value)}:}{ ~~ }
-    \item{\code{delete_cookie(key, value)}:}{ ~~ }
-    \item{\code{finish()}:}{ ~~ }
+    \item{\code{header(key, value)}:}{ Sets an HTTP header for the response.Both \code{key} and \code{value} must be character strings.}
+    \item{\code{redirect(target, status)}:}{ Sets up an HTTP redirect to the \code{target} url. \code{status} value defaults to 302. }
+    \item{\code{write(str)}:}{ Takes a character vector and appends it to the response body. }
+    \item{\code{new(body='', status=200, headers=list())}:}{ Create a new Response object. \code{body} is a character vector, \code{status} is an HTTP status value. \code{headers} is a named list.}
+    \item{\code{set_cookie(key, value)}:}{ Sets an HTTP cookie for the response. Both \code{key} and \code{value} must be character strings.}
+    \item{\code{delete_cookie(key, value)}:}{ Sends appropriate HTTP header to delete the associated cookie on the client. \code{key} and \code{value} must be character strings.}
+    \item{\code{finish()}:}{ Returns the response according to the Rack specification.}
   }
 }

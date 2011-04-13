@@ -2,47 +2,44 @@
 \Rdversion{1.1}
 \docType{class}
 \alias{RhttpdApp-class}
+\alias{RhttpdApp}
 
 \title{Class \code{"RhttpdApp"}}
 \description{
-%%  ~~ A concise (1-5 lines) description of what the class is. ~~
+Creates a Rack application ready to add to an \code{"\link{Rhttpd}"} server.
 }
-\section{Extends}{
+\details{
+The internal web server allows dispatching to user-defined closures located in tools:::.httpd.handlers.env. For instance, if a handler named 'foo' is placed there, then the url path to that handler is /custom/foo. 
 
-All reference classes extend and inherit methods from \code{"\linkS4class{envRefClass}"}.
+\code{RhttpdApp} along with \code{"\link{Rhttpd}"} hide these details by allowing a user to create application objects by specifying only the name and the application. There is currently a restriction of 64 characters or less on application names.
 
+NOTE: When a file is given as the value of the \code{app} argument to \code{new()}, it is monitored timestamp changes. If a changes occurs in the modification time as returned by \code{"\link{file.info}"}, then the file is sourced prior to handling incoming requests.
 }
-\references{
-%%  ~~put references to the literature/web site here~~
-}
-\author{
-%%  ~~who you are~~
-}
-\note{
-%%  ~~further notes~~
-}
-
-%% ~Make other sections like Warning with \section{Warning }{....} ~
-
 \seealso{
-%%  ~~objects to See Also as \code{\link{~~fun~~}}, ~~~
-%%  ~~or \code{\linkS4class{CLASSNAME}} for links to other classes ~~~
+\code{"\link{Rhttpd}"}.
 }
 \examples{
-showClass("RhttpdApp")
+
+# You must have the Hmisc package installed to run this example.
+s <- Rhttpd$new()
+\dontrun{
+s$add(RhttpdApp$new(
+    name='Hmisc',
+    app=system.file('exampleApps/Hmisc/config.R',package='Rack')
+))
+s$start(quiet=TRUE)
+s$browse(1)
+s$remove(1)
+}
+
+#  Stops the server but doesn't uninstall the app
+s$stop()
+
+rm(s)
 }
 \keyword{classes}
-\section{Fields}{
-  \describe{
-    \item{\code{app}:}{Object of class \code{ANY} ~~ }
-    \item{\code{name}:}{Object of class \code{ANY} ~~ }
-    \item{\code{path}:}{Object of class \code{ANY} ~~ }
-    \item{\code{appEnv}:}{Object of class \code{ANY} ~~ }
-  }
-}
 \section{Methods}{
   \describe{
-    \item{\code{initialize(app, name, ...)}:}{ ~~ }
-    \item{\code{invoke_handler(env)}:}{ ~~ }
+    \item{\code{new(app, name)}:}{ Creates an object of class \code{RhttpdApp}. Argument \code{app} can be any \code{"\link{Rack}"} aware object or it can be a location to a file whose source creates a Rack aware object. That object must be named either \code{'app'} or the value of \code{name}. \code{name} is a character vector.}
   }
 }
