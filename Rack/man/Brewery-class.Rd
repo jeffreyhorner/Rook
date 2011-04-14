@@ -4,9 +4,9 @@
 \alias{Brewery-class}
 \alias{Brewery}
 
-\title{Class \code{"Brewery"}}
+\title{Class \code{Brewery}}
 \description{
-A \code{"\link{Middleware}"} class for mapping URLs to a directory of files that are subsequently passed to brew. When a file is brewed, the two variables \code{req} (an object of class Request) and \code{res} (an object of class Response) are available for use.
+A \code{\link{Middleware}} class for mapping URLs to a directory of files that are subsequently passed to brew. When a file is brewed, the two variables \code{req} (an object of class Request) and \code{res} (an object of class Response) are available for use.
 
 }
 \section{Methods}{
@@ -38,10 +38,7 @@ file.remove(file.path(tempdir(),"index.html"))
 rm(s)
 }
 
-\section{Extends}{
-Class \code{"\link{Middleware}"}.
-}
 \seealso{
-\code{"\link{Rhttpd}"}, \code{"\link{RhttpdApp}"}, \code{"\link{Builder}"}, \code{"\link{Redirect}"}, and \code{"\link{brew}"}.
+\code{\link{Rhttpd}}, \code{\link{RhttpdApp}}, \code{\link{Builder}}, \code{\link{Redirect}}, and \code{\link{brew}}.
 }
 \keyword{classes}

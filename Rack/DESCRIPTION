@@ -6,7 +6,8 @@ Date: 2011-01-24
 Author: Jeffrey Horner <jeffrey.horner@gmail.com>
 Maintainer: Jeffrey Horner <jeffrey.horner@gmail.com>
 Description: This package contains the Rack specification and
- convenience software for building and running Rack applications.
+ convenience software for building and running Rack applications. To
+ get started, be sure and read the 'Rack' help file first.
 Depends: R (>= 2.13.0), utils, tools, methods, brew
 License: GPL-2
 LazyLoad: yes

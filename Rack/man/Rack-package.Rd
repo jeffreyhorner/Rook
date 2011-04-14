@@ -8,50 +8,50 @@ Rack: A web server interface and package for R
 \description{
     This help page defines the Rack specification. It borrows heavily from Ruby's Rack project: \url{http://rack.rubyforge.org/}.
 
-    For other help documents, see:
+    After reading this document, read the \code{\link{Rhttpd}} help file as it will get you familiar with installing and running \code{Rack} applications. Then explore the example applications located in \code{system.file('exampleApps',package='Rack')}.
 }
 
 \section{Rack applications}{
 A Rack application is an R reference class object that implements a 'call'
 method or an R closure that takes exactly one argument, an environment,
-and returns a list with three named elements: the 'status', the 'headers',
-and the 'body'.
+and returns a list with three named elements: \code{'status'}, \code{'headers'},
+and \code{'body'}.
 }
 \section{Hello World}{
 
 Here is a basic Rack application as a closure that implements 'hello world':
 
 \preformatted{
-    function(env){
-	body = paste('<h1>Hello World! This is Rack',env$rack.version,'.</h1>')
-	list(
-	    status = 200L,
-	    headers = list(
-		'Content-Type' = 'text/html'
-	    ),
-	    body = body
-	)
-    }
+function(env){
+    body = paste('<h1>Hello World! This is Rack',env$rack.version,'.</h1>')
+    list(
+	status = 200L,
+	headers = list(
+	    'Content-Type' = 'text/html'
+	),
+	body = body
+    )
+}
 }
 
 And the equivalent referenc class example:
 
 \preformatted{
-    setRefClass(
-	'HelloWorld',
-	methods = list(
-	    call = function(env){
-		body = paste('<h1>Hello World! This is Rack',env$rack.version,'.</h1>')
-		list(
-		    status = 200L,
-		    headers = list(
-			'Content-Type' = 'text/html'
-		    ),
-		    body = body
-		)
-	    }
-	)
+setRefClass(
+    'HelloWorld',
+    methods = list(
+	call = function(env){
+	    body = paste('<h1>Hello World! This is Rack',env$rack.version,'.</h1>')
+	    list(
+		status = 200L,
+		headers = list(
+		    'Content-Type' = 'text/html'
+		),
+		body = body
+	    )
+	}
     )
+)
 }
 }
 
@@ -79,7 +79,7 @@ variables:
     if any. May be empty, but is always required!}
 
 \item{SERVER_NAME, SERVER_PORT}{ When combined with SCRIPT_NAME and PATH_INFO,
-    these variables can be used to complete the URL. Note, however, that
+    these variables can be used to complete the URL. Note however that
     HTTP_HOST, if present, should be used in preference to SERVER_NAME for
     reconstructing the request URL. SERVER_NAME and SERVER_PORT can never
     be empty strings, and so are always required.}
@@ -94,47 +94,45 @@ In addtion, the environment must include the following Rack-specific variables:
 
 \describe{
  \item{rack.version}{ This version of Rack.}
- \item{rack.url_scheme}{http or https, depending on the request URL.}
+ \item{rack.url_scheme}{'http' or 'https', depending on the request URL.}
  \item{rack.input}{See below, the input stream.}
  \item{rack.errors}{See below, the error stream.}
 }
 }
 \section{The Input Stream}{
-
 The rack.input variable must contain an object created from a reference
-class and respond to readLines, read, and rewind:
+class that implements \code{read_lines()}, \code{read()}, and \code{rewind()}:
 
 \describe{
-    \item{readLines}{takes one argument, the number of lines to read. Includes partial ending line.}
-    \item{read}{takes one argument, the number of bytes to read. Returns a raw vector.}
-    \item{rewind}{Rewinds the input stream back to the beginning.}
+    \item{\code{read_lines(l=-1L)}:}{takes one argument, the number of lines to read. Includes partial ending line.}
+    \item{\code{read(l=-1L)}:}{takes one argument, the number of bytes to read. Returns a raw vector.}
+    \item{rewind():}{Rewinds the input stream back to the beginning.}
 }
 }
 
 \section{The Error Stream}{
-
 The rack.error variable must contain an object created from a reference
-class and must respond to flush and cat:
+class that implements \code{flush()} and \code{cat()}:
 \describe{
-    \item{flush}{called with no arguments and makes the error stream immediately appear.}
-    \item{cat}{called with the same arguments as R's cat without the file and append argument.}
+    \item{\code{flush()}:}{called with no arguments and makes the error stream immediately appear.}
+    \item{\code{cat(...,sep=" ",fill=FALSE,labels=NULL)}:}{called with the same arguments as R's \code{"\link{cat}"} without the \code{file} and append \code{argument}.}
 }
 }
 
 \section{The Response}{
 
-\subsection{The Status}{
-This is an HTTP status value and must be greater than or equal to 100.
+\subsection{The \code{'status'}}{
+This is an HTTP status value as integer and must be greater than or equal to 100. 
 }
 
-\subsection{The Headers}{
-This is a named list that contains string values only corresponding to valid HTTP headers.
+\subsection{The \code{'headers'}}{
+This is a named list that contains character values only corresponding to valid HTTP headers.
 }
-\subsection{The Body}{
+\subsection{The \code{'body'}}{
 This is either a character or raw vector. If the character vector is
-named with value 'file' then value of the vector is interpreted as the
+named with value \code{'file'} then value of the vector is interpreted as the
 location of a file.
 }
 }
 \author{ Jeffrey Horner <jeffrey.horner@gmail.com> }
-\keyword{ package }
+\keyword{package}
