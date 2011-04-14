@@ -12,7 +12,7 @@ Abstract class from which \code{Middleware} and \code{Builder} inherit. Provides
 }
 \section{Fields}{
   \describe{
-    \item{\code{app}:}{A Rackable app.}
+    \item{\code{app}:}{A Rack application.}
   }
 }
 \section{Methods}{

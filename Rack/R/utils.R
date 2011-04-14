@@ -83,7 +83,8 @@ Utils <- setRefClass(
 	    DEFAULT_SEP <<- '[&;] *'
 	    callSuper(...)
 	},
-	escape = function(s) { 
+	escape = function(s=NULL) { 
+	    if (is.null(s)) base::stop("Need a character vector argument")
 	    x <- strsplit(s,"")[[1L]]
 	    z <- grep('[^ a-zA-Z0-9_.-]',x,perl=TRUE)
 	    if (length(z)){
@@ -93,9 +94,12 @@ Utils <- setRefClass(
 	    s <- paste(x,collapse='')
 	    chartr(' ','+',s)
 	},
-	unescape = function(s) chartr('+',' ',utils::URLdecode(s)),
-	parse_query = function(qs, d=NULL) {
-	    if (is.null(d)) d <- DEFAULT_SEP
+	unescape = function(s=NULL){
+	    if(is.null(s)) base::stop("Need a character vector argument")
+	    chartr('+',' ',utils::URLdecode(s))
+	},
+	parse_query = function(qs=NULL, d=DEFAULT_SEP) {
+	    if (is.null(qs)) base::stop("Need a character vector argument")
 
 	    x <- strsplit(qs,d,perl=TRUE)[[1L]]
 	    if (length(x) == 0) return(list())
@@ -127,12 +131,14 @@ Utils <- setRefClass(
 	},
 	#parse_nested_query = function() {},
 	#normalize_params = function () {},
-	build_query = function(params) {
+	build_query = function(params=NULL) {
+	    if (is.null(params)) base::stop("Need named list argument")
 	    # TODO: call escape here, need to vectorize it first
 	    paste(names(params),params,sep='=',collapse='&')
 	},
 	#build_nested_query = function() {},"
-	escape_html = function(string) {
+	escape_html = function(string=NULL) {
+	    if (is.null(string)) base::stop("Need a character vector argument")
 	    string <- gsub('&','&amp;',string)
 	    string <- gsub('<','&lt;',string)
 	    string <- gsub('>','&gt;',string)
@@ -174,10 +180,15 @@ Utils <- setRefClass(
 
 	    set_cookie_header(header,key,'',timezero(),path,domain,secure,httpOnly)
 	},
-	bytesize = function(string=NULL) nchar(string,type='bytes'),
-	raw.match = function(needle,haystack,all=TRUE) .Call(Rack:::rawmatch,needle,haystack,all),
+	bytesize = function(string=NULL) {
+	    if (is.null(string)) base::stop("Need a character vector")
+	    nchar(string,type='bytes')
+	},
+	raw.match = function(needle=NULL,haystack=NULL,all=TRUE) .Call(Rack:::rawmatch,needle,haystack,all),
 	timezero = function() structure(0,class=c('POSIXct','POSIXt')),
-	rfc2822 = function(ts){
+	rfc2822 = function(ts=NULL){
+	    if (is.null(ts) || !inherits(ts,'POSIXt'))
+		base::stop("Need a POSIXt object")
 	    format(ts,format="%a, %d %b %Y %T GMT",tz='GMT')
 	},
 	status_code = function(status=NULL){
@@ -578,7 +589,11 @@ Mime <- setRefClass(
 	    })
 	    callSuper(...)
 	},
-	file_extname = function(fname) paste('.',rev(strsplit(fname,'.',fixed=TRUE)[[1]])[1],sep=''),
+	file_extname = function(fname=NULL){
+	    if (is.null(fname))
+		base::stop("need an argument of character")
+	    paste('.',rev(strsplit(fname,'.',fixed=TRUE)[[1]])[1],sep='')
+	},
 	mime_type=function(ext=NULL,fallback='application/octet-stream'){
 	    if (is.null(ext) || !nzchar(ext) || is.null(MIME_TYPES[[ext]]))
 		fallback

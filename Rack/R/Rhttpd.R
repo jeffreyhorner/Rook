@@ -4,7 +4,7 @@ RhttpdApp <- setRefClass(
     methods = list(
 	initialize = function(app=NULL,name=NULL,...){
 	    if (is.null(name) || !is.character(name))
-		stop("Need a proper app 'name'")
+		base::stop("Need a proper app 'name'")
 
 	    .self$name <- name
 
@@ -16,12 +16,12 @@ RhttpdApp <- setRefClass(
 		appEnv$.mtime <<- as.integer(file.info(basename(app))$mtime)
 		appEnv$.appFile <<- app
 
-		if (exists(.self$name,.self$appEnv))
+		if (exists(.self$name,.self$appEnv,inherits=FALSE))
 		    .self$app <- get(.self$name,.self$appEnv)
-		else if (exists('app',.self$appEnv))
+		else if (exists('app',.self$appEnv,inherits=FALSE))
 		    .self$app <- get('app',.self$appEnv)
 		else
-		    stop("Cannot find a suitable app in file",app)
+		    base::stop("Cannot find a suitable app in file",app)
 
 	    } else {
 		.self$app <- app
@@ -30,7 +30,7 @@ RhttpdApp <- setRefClass(
 	    }
 
 	    if (!is_rackable(.self$app))
-		stop("App is not rackable'")
+		base::stop("App is not rackable'")
 
 	    .self$path <- ifelse(.self$name=='httpd','', paste('/custom',.self$name,sep='/'))
 	    callSuper(...)
@@ -46,16 +46,19 @@ RhttpdApp <- setRefClass(
 		if (mtime > appEnv$.mtime){
 		    appEnv$.mtime <<- mtime
 		    sys.source(file_path,envir=appEnv)
-		    if (exists(name,appEnv))
-			app <<- get(name,appEnv)
-		    else if (exists('app',appEnv))
+		    if (exists(app$name,appEnv,inherits=FALSE))
+			app <<- get(app$name,appEnv)
+		    else if (exists('app',appEnv,inherits=FALSE))
 			app <<- get('app',appEnv)
 		    else
-			stop("Cannot find a suitable app in file",appEnv$.appFile)
+			base::stop("Cannot find a suitable app in file",appEnv$.appFile)
 		}
 	    }
-	    if (is(app,'function')) app(env)
-	    else app$call(env)
+	    if (is(app,'function')) {
+		app(env)
+	    } else {
+		app$call(env)
+	    }
 	}
     )
 )
@@ -143,10 +146,10 @@ Rhttpd <- setRefClass(
 	    if (add(app)){
 		appName <- app$name
 		browseURL(full_url(which(appName == names(appList))))
-		return()
+		invisible()
+	    } else {
+		base::stop("No app to launch")
 	    }
-
-	    stop("No app to launch")
 	},
 	open = function(x){
 	    if (missing(x)) return(print())
@@ -155,16 +158,16 @@ Rhttpd <- setRefClass(
 		if (!is.null(appList[[x]]))
 		    return(invisible(browseURL(full_url(x))))
 		else
-		    stop("No app at index ",x)
+		    base::stop("No app at index ",x)
 	    } else if (is.character(x)){
 		for (i in 1:length(appList)){
 		    if (appList[[i]]$name==x){
 			return(invisible(browseURL(full_url(x))))
 		    }
 		}
-		stop("No app named",x)
+		base::stop("No app named",x)
 	    }
-	    stop("Argument must be an integer or character")
+	    base::stop("Argument must be an integer or character")
 	},
 	browse = function(x) open(x),
 	start = function(listen='127.0.0.1',port=getOption('help.ports'),quiet=FALSE){
@@ -231,7 +234,7 @@ Rhttpd <- setRefClass(
 		unlockBinding("httpdPort", env)
 		assign('httpdPort',-1L,env)
 		lockBinding("httpdPort", env)
-		return()
+		return(invisible())
 	    }
 
 	    if (!quiet){
@@ -240,18 +243,21 @@ Rhttpd <- setRefClass(
 		    cat('\thttp://',listen,':',tools:::httpdPort,appList[[i]]$path,'\n',sep='')
 		}))
 	    }
+	    invisible()
 	},
 	stop = function(){
 	    env <- environment(tools::startDynamicHelp)
 	    unlockBinding("httpdPort", env)
 	    assign('httpdPort',0L,env) 
 	    lockBinding("httpdPort", env)
-	    .Internal(stopHTTPD())
+	    invisible(.Internal(stopHTTPD()))
 	},
-	add = function(app=NULL){
+	add = function(app=NULL,name=NULL){
 
 	    if (!inherits(app,'RhttpdApp'))
-		stop("Need an RhttpdApp object")
+		app <- RhttpdApp$new(name=name,app=app)
+	    if (!inherits(app,'RhttpdApp'))
+		base::stop("Need an RhttpdApp object")
 
 	    appList[[app$name]] <<- app
 	    if(app$name=='httpd'){
@@ -271,7 +277,11 @@ Rhttpd <- setRefClass(
 
 	    invisible(TRUE)
 	},
-	remove = function(app=NULL){
+	remove = function(app=NULL,all=FALSE){
+	    if (all==TRUE){
+		lapply(names(appList),remove)
+		return(invisible(TRUE))
+	    }
 	    if (inherits(app,'RhttpdApp'))
 		name <- app$name
 	    else if (is.character(app))
@@ -279,7 +289,7 @@ Rhttpd <- setRefClass(
 	    else if (is.numeric(app) || is.integer(app))
 		name <- appList[[app]]$name
 	    else
-		stop("Can only remove by object, app name, or index.")
+		base::stop("Can only remove by object, app name, or index.")
 
 	    if (is.null(appList[[name]])) return(FALSE)
 
@@ -393,13 +403,15 @@ Rhttpd <- setRefClass(
 		cat("Server stopped\n")
 	    }
 	    if (length(appList) == 0){
-		cat("No apps installed\n")
-		return()
+		cat("No applications installed\n")
+		return(invisible())
 	    }
+	    len <- max(nchar(names(appList)))
 	    for (i in 1:length(appList)){
-		cat('[',i,'] ',full_url(i),'\n',sep='')
+		appName <- sprintf(paste('%-',len,'s',sep=''),names(appList)[i])
+		cat('[',i,'] ',appName,' ',full_url(i),'\n',sep='')
 	    }
-	    cat("\nTo open an app in your browser,  call open(i) where i is a number from the list above \n")
+	    cat("\nCall browse() with an index number or name to run an application.\n")
 	    invisible()
 	},
 	show = function() print(),

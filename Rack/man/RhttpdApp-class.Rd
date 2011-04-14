@@ -9,28 +9,37 @@
 Creates a Rack application ready to add to an \code{\link{Rhttpd}} server.
 }
 \details{
-The internal web server allows dispatching to user-defined closures located in tools:::.httpd.handlers.env. For instance, if a handler named 'foo' is placed there, then the url path to that handler is /custom/foo. 
 
-\code{RhttpdApp} along with \code{\link{Rhttpd}} hide these details by allowing a user to create application objects specifying only their name and the application. There is currently a restriction of 64 characters or less on application names.
+The internal web server allows dispatching to user-defined closures
+located in tools:::.httpd.handlers.env. For instance, if a handler named
+'foo' is placed there, then the url path to that handler is /custom/foo.
 
-NOTE: When a file is given as the value of the \code{app} argument to \code{new()}, it is monitored for timestamp changes. If a changes occurs in the modification time as returned by \code{\link{file.info}}, then the file is sourced prior to handling subsequent requests.
+\code{RhttpdApp} along with \code{\link{Rhttpd}} hide these details by
+allowing a user to create application objects specifying only their name
+and the application. There is currently a limit of 63 characters
+or less for application names.
+
+NOTE: When a file is given as the value of the \code{app} argument
+to \code{new()}, it is monitored for timestamp changes. If a change
+occurs in the modification time as returned by \code{\link{file.info}},
+then the file is sourced prior to handling subsequent requests.
+
 }
 \seealso{
 \code{\link{Rhttpd}}.
 }
 \examples{
 
-# You must have the Hmisc package installed to run this example.
 s <- Rhttpd$new()
-\dontrun{
 s$add(RhttpdApp$new(
-    name='Hmisc',
-    app=system.file('exampleApps/Hmisc/config.R',package='Rack')
+    name='summary',
+    app=system.file('exampleApps/summary.R',package='Rack')
 ))
 s$start(quiet=TRUE)
+\dontrun{
 s$browse(1)
-s$remove(1)
 }
+s$remove(all=TRUE)
 
 #  Stops the server but doesn't uninstall the app
 s$stop()

@@ -6,9 +6,14 @@
 Rack: A web server interface and package for R
 }
 \description{
-    This help page defines the Rack specification. It borrows heavily from Ruby's Rack project: \url{http://rack.rubyforge.org/}.
+    This help page defines the Rack specification. It borrows heavily
+    from Ruby's Rack project: \url{http://rack.rubyforge.org/}.
 
-    After reading this document, read the \code{\link{Rhttpd}} help file as it will get you familiar with installing and running \code{Rack} applications. Then explore the example applications located in \code{system.file('exampleApps',package='Rack')}.
+    After reading this document, read the \code{\link{Rhttpd}} help file
+    as it will get you familiar with installing and running \code{Rack}
+    applications. Then explore the example applications located in:
+
+    \code{system.file('exampleApps',package='Rack')}.
 }
 
 \section{Rack applications}{
@@ -25,11 +30,11 @@ Here is a basic Rack application as a closure that implements 'hello world':
 function(env){
     body = paste('<h1>Hello World! This is Rack',env$rack.version,'.</h1>')
     list(
-	status = 200L,
-	headers = list(
-	    'Content-Type' = 'text/html'
-	),
-	body = body
+        status = 200L,
+        headers = list(
+            'Content-Type' = 'text/html'
+        ),
+        body = body
     )
 }
 }
@@ -37,20 +42,18 @@ function(env){
 And the equivalent referenc class example:
 
 \preformatted{
-setRefClass(
-    'HelloWorld',
-    methods = list(
-	call = function(env){
-	    body = paste('<h1>Hello World! This is Rack',env$rack.version,'.</h1>')
-	    list(
-		status = 200L,
-		headers = list(
-		    'Content-Type' = 'text/html'
-		),
-		body = body
-	    )
-	}
-    )
+setRefClass('HelloWorld',
+  methods = list(
+    call = function(env){
+      list(
+        status = 200L,
+        headers = list(
+         'Content-Type' = 'text/html'
+        ),
+        body = paste('<h1>Hello World! This is Rack',env$rack.version,'.</h1>')
+      )
+    }
+  )
 )
 }
 }
@@ -95,8 +98,8 @@ In addtion, the environment must include the following Rack-specific variables:
 \describe{
  \item{rack.version}{ This version of Rack.}
  \item{rack.url_scheme}{'http' or 'https', depending on the request URL.}
- \item{rack.input}{See below, the input stream.}
- \item{rack.errors}{See below, the error stream.}
+ \item{rack.input}{See \dQuote{The Input Stream} section.}
+ \item{rack.errors}{See \dQuote{The Error Stream} section.}
 }
 }
 \section{The Input Stream}{
@@ -106,7 +109,7 @@ class that implements \code{read_lines()}, \code{read()}, and \code{rewind()}:
 \describe{
     \item{\code{read_lines(l=-1L)}:}{takes one argument, the number of lines to read. Includes partial ending line.}
     \item{\code{read(l=-1L)}:}{takes one argument, the number of bytes to read. Returns a raw vector.}
-    \item{rewind():}{Rewinds the input stream back to the beginning.}
+    \item{\code{rewind()}:}{Rewinds the input stream back to the beginning.}
 }
 }
 
@@ -121,18 +124,20 @@ class that implements \code{flush()} and \code{cat()}:
 
 \section{The Response}{
 
-\subsection{The \code{'status'}}{
-This is an HTTP status value as integer and must be greater than or equal to 100. 
+Rack applications return a list with three named elements: \code{'status'}, \code{'headers'},
+and \code{'body'}.
+
+\subsection{\code{'status'}}{
+An HTTP status value as integer and must be greater than or equal to 100. 
 }
 
-\subsection{The \code{'headers'}}{
-This is a named list that contains character values only corresponding to valid HTTP headers.
+\subsection{\code{'headers'}}{
+A named list that contains only character values corresponding to valid HTTP headers.
 }
-\subsection{The \code{'body'}}{
-This is either a character or raw vector. If the character vector is
-named with value \code{'file'} then value of the vector is interpreted as the
+\subsection{\code{'body'}}{
+Either a character or raw vector. If the character vector is named
+with value \code{'file'} then value of the vector is interpreted as the
 location of a file.
-}
-}
+}}
 \author{ Jeffrey Horner <jeffrey.horner@gmail.com> }
 \keyword{package}

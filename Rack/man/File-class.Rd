@@ -4,7 +4,7 @@
 \alias{File-class}
 \alias{File}
 
-\title{Class \code{"File"}}
+\title{Class \code{File}}
 \description{
 A Rack application that serves static files from a root directory, according to the path info of the Rack request.
 }
@@ -13,26 +13,24 @@ A Rack application that serves static files from a root directory, according to 
 #
 # Note that when you open the application, you will see the word
 # 'Forbidden'. "File" doesn's serve directories, so you must amend the
-# url in the location bar with the file you want to view. Try adding passwd.
+# url in the location bar with the file you want to view. Try adding /passwd.
 
 s <- Rhttpd$new()
 s$start(quiet=TRUE)
-s$add(RhttpdApp$new(name="etc",app=File$new('/etc')))
+s$add(name="etc",app=File$new('/etc'))
 \dontrun{
 s$browse('etc') # Opens a browser window to the app.
 }
+s$remove(all=TRUE)
 rm(s)
 }
 \section{Methods}{
 \describe{
-    \item{\code{new(root,...):}}{
+    \item{\code{new(root):}}{
 	\code{root} is the name of the directory from where to serve files.
     }
 }}
-\section{Extends}{
-Class \code{"\link{Middleware}"}.
-}
 \seealso{
-\code{"\link{Rhttpd}"} and \code{"\link{RhttpdApp}"}.
+\code{\link{Rhttpd}}.
 }
 \keyword{classes}

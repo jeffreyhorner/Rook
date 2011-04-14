@@ -4,9 +4,9 @@
 \alias{RhttpdErrorStream-class}
 \alias{RhttpdErrorStream}
 
-\title{Class \code{"RhttpdErrorStream"}}
+\title{Class \code{RhttpdErrorStream}}
 \description{
-An internal class used by \code{"\link{Rhttpd}"}.
+An internal class used by \code{\link{Rhttpd}}.
 }
 \examples{
 showClass("RhttpdErrorStream")

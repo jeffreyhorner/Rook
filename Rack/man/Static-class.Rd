@@ -4,12 +4,12 @@
 \alias{Static-class}
 \alias{Static}
 
-\title{Class \code{"Static"}}
+\title{Class \code{Static}}
 \description{
-A \code{"\link{Middleware}"} class for serving static files from a root directory given a set of url paths.
+A \code{\link{Middleware}} class for serving static files from a root directory given a set of url paths.
 }
 \seealso{
-See \code{"\link{Builder}"} for an example.
+See \code{\link{Builder}} for an example.
 }
 \keyword{classes}
 \section{Methods}{

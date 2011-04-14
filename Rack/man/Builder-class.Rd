@@ -4,7 +4,7 @@
 \alias{Builder-class}
 \alias{Builder}
 
-\title{Class \code{"Builder"}}
+\title{Class \code{Builder}}
 \description{
 A convenience object for combining various \code{Middleware} with a default application to create a more complex Rack application.
 }
@@ -16,34 +16,30 @@ s <- Rhttpd$new()
 \dontrun{
 library(Hmisc)
 dir.create(file.path(tempdir(),'plots'),showWarnings=FALSE)
-s$add(RhttpdApp$new(
-    name="Hmisc",
+s$add( name="Hmisc",
     app=Builder$new(
-	Static$new(
-	    urls = c('/css','/images','/javascript'),
-	    root = system.file('exampleApps/Hmisc',package='Rack')
-	),
-	Static$new(urls='/plots',root=tempdir()),
-	Brewery$new(
-	    url='/brew',
-	    root= system.file('exampleApps/Hmisc',package='Rack'),
-	    imagepath=file.path(tempdir(),'plots'),
-	    imageurl='../plots/'
-	),
-	Redirect$new('/brew/useR2007.rhtml')
+        Static$new(
+            urls = c('/css','/images','/javascript'),
+            root = system.file('exampleApps/Hmisc',package='Rack')
+        ),
+        Static$new(urls='/plots',root=tempdir()),
+        Brewery$new(
+            url='/brew',
+            root= system.file('exampleApps/Hmisc',package='Rack'),
+            imagepath=file.path(tempdir(),'plots'),
+            imageurl='../plots/'
+        ),
+        Redirect$new('/brew/useR2007.rhtml')
     )
-))
+)
 s$start(quiet=TRUE)
-s$browse('Hmisc') # Opens a browser window to the app.
+s$browse('Hmisc') # Opens a browser window to the application.
+}
+s$remove(all=TRUE)
 s$stop()
 }
-}
 \seealso{
-\code{"\link{Static}"}, \code{"\link{Brewery}"}, and \code{"\link{Redirect}"}.
-}
-\section{Extends}{
-Class \code{"\link{App}"}, directly.
-
+\code{\link{Rhttpd}}, \code{\link{Static}}, \code{\link{Brewery}}, and \code{\link{Redirect}}.
 }
 \keyword{classes}
 \section{Methods}{

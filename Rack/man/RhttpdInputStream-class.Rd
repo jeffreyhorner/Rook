@@ -4,9 +4,9 @@
 \alias{RhttpdInputStream-class}
 \alias{RhttpdInputStream}
 
-\title{Class \code{"RhttpdInputStream"}}
+\title{Class \code{RhttpdInputStream}}
 \description{
-An internal class used by \code{"\link{Rhttpd}"}.
+An internal class used by \code{\link{Rhttpd}}.
 }
 \examples{
 showClass("RhttpdInputStream")

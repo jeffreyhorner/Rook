@@ -16,6 +16,6 @@ is_rackable(app)
     Logical determining whether or not argument is Rackable. Not vectorized.
 }
 \seealso{
-\code{"\link{Rack}"}.
+\code{\link{Rack}}.
 }
 \keyword{function}

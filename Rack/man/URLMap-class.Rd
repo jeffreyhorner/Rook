@@ -4,38 +4,38 @@
 \alias{URLMap-class}
 \alias{URLMap}
 
-\title{Class \code{"URLMap"}}
+\title{Class \code{URLMap}}
 \description{
-A \code{"\link{Rack}"} application that maps url paths to other \code{Rack} applications.
+A \code{\link{Rack}} application that maps url paths to other \code{Rack} applications.
 }
 \seealso{ 
-\code{"\link{Rhttpd}"} and \code{"\link{RhttpdApp}"}.
+\code{\link{Rhttpd}}.
 }
 \examples{
 s <- Rhttpd$new()
-s$add(RhttpdApp$new(
+s$add(
     name="pingpong",
     app=Rack::URLMap$new(
-	'/ping' = function(env){
-	    req <- Rack::Request$new(env)
-	    res <- Rack::Response$new()
-	    res$write(sprintf('<h1><a href="\%s">Pong</a></h1>',req$to_url("/pong")))
-	    res$finish()
-	},
-	'/pong' = function(env){
-	    req <- Rack::Request$new(env)
-	    res <- Rack::Response$new()
-	    res$write(sprintf('<h1><a href="\%s">Ping</a></h1>',req$to_url("/ping")))
-	    res$finish()
-	},
-	'/?' = function(env){
-	    req <- Rack::Request$new(env)
-	    res <- Rack::Response$new()
-	    res$redirect(req$to_url('/pong'))
-	    res$finish()
-	}
+        '/ping' = function(env){
+            req <- Rack::Request$new(env)
+            res <- Rack::Response$new()
+            res$write(sprintf('<h1><a href="\%s">Pong</a></h1>',req$to_url("/pong")))
+            res$finish()
+        },
+        '/pong' = function(env){
+            req <- Rack::Request$new(env)
+            res <- Rack::Response$new()
+            res$write(sprintf('<h1><a href="\%s">Ping</a></h1>',req$to_url("/ping")))
+            res$finish()
+        },
+        '/?' = function(env){
+            req <- Rack::Request$new(env)
+            res <- Rack::Response$new()
+            res$redirect(req$to_url('/pong'))
+            res$finish()
+        }
     )
-))
+)
 s$start(quiet=TRUE)
 \dontrun{
 s$browse('pingpong')
