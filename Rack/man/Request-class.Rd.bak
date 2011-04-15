@@ -107,8 +107,8 @@ rm(s)
     \item{\code{host()}:}{ Returns the server host as a character string. }
     \item{\code{POST()}:}{ Returns a named list containing the variables parsed from the POST payload.}
     \item{\code{trace()}:}{ Returns TRUE if the current request is 'TRACE'. }
-    \item{\code{script_name(s=NULL)}:}{ Returns the script name of the application, e.g. '/custom/multi'. Also, if \code{s} is not NULL, sets the script name to \code{s}. }
-    \item{\code{content_type()}:}{ Returns the content-type header value as a character string. }
+    \item{\code{script_name(s=NULL)}:}{ Returns the script name of the application, e.g. '/custom/multi'. Also, if \code{s} is not NULL, sets the script aname to \code{s}. }
+    \item{\code{content_type()}:}{ Returns the cotent-type header value as a character string. }
     \item{\code{delete()}:}{ Returns TRUE if the current request is 'DELETE'. }
     \item{\code{path_info(s=NULL)}:}{ Returns the portion of the url after the script name as a character string. If \code{s} is not NULL, sets the path info th \code{s}.}
   }

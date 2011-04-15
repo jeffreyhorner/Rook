@@ -39,7 +39,7 @@ function(env){
 }
 }
 
-And the equivalent reference class example:
+And the equivalent referenc class example:
 
 \preformatted{
 setRefClass('HelloWorld',
@@ -93,7 +93,7 @@ variables:
     or absence of the appropriate HTTP header in the request.}
 }
 
-In addition, the environment must include the following Rack-specific variables:
+In addtion, the environment must include the following Rack-specific variables:
 
 \describe{
  \item{rack.version}{ This version of Rack.}

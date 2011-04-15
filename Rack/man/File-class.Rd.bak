@@ -12,7 +12,7 @@ A Rack application that serves static files from a root directory, according to 
 # This example serves all your files in /etc (on UNIX and Mac only).
 #
 # Note that when you open the application, you will see the word
-# 'Forbidden'. "File" doesn't serve directories, so you must amend the
+# 'Forbidden'. "File" doesn's serve directories, so you must amend the
 # url in the location bar with the file you want to view. Try adding /passwd.
 
 s <- Rhttpd$new()

@@ -26,7 +26,7 @@ install the application named \code{RackTestApp} located in:
 \code{system.file('exampleApps/RackTestApp.R',package='Rack')}.
 
 Also, see \code{\link{browseURL}} to learn how to get R to
-automatically launch your favorite web browser.
+automatically launch your favorite web brwoser.
 } 
 
 \seealso{
@@ -78,7 +78,7 @@ rm(s)
     \item{\code{full_url(i)}:}{ Returns the absolute url to the application for the given index.}
     \item{\code{start(listen='127.0.0.1', port=getOption('help.ports'), quiet=FALSE)}:}{ Starts the server on the given \code{listen} address and \code{port}. \code{listen} is always character string. Note that if there are no applications added to the object prior to starting, then the RackTestApp located in \code{system.file('exampleApps/RackTestApp.R',package='Rack')} is automatically added.}
     \item{\code{new()}:}{ Create a new \code{Rhttpd} object. }
-    \item{\code{launch(...)}:}{ Combines the steps of starting the server, creating an \code{RhttpdApp} object, adding it to the server, and opening the app in the browser. \code{...} argument is passed to \code{RhttpdApp$new()}.}
+    \item{\code{launch(...)}:}{ Combines the steps of starting the server, creating an \code{RhttpdApp} object, adding it to the server, and openning the app in the browser. \code{...} arguement is passed to \code{RhttpdApp$new()}.}
     \item{\code{debug()}:}{ Returns the integer value provided by \code{getOption('Rhttpd_debug')} or 0 if the option is NULL. }
     \item{\code{stop()}:}{ Stops the server. }
     \item{\code{add(app=NULL,name=NULL)}:}{ Adds a new \code{Rack} application to the server. \code{app} can be an \code{\link{RhttpdApp}} object or any \code{Rack} application. \code{name} is a character string and is ignored if \code{app} is an \code{RhttpdApp} object.}
