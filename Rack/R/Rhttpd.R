@@ -21,7 +21,7 @@ RhttpdApp <- setRefClass(
 		else if (exists('app',.self$appEnv,inherits=FALSE))
 		    .self$app <- get('app',.self$appEnv)
 		else
-		    base::stop("Cannot find a suitable app in file",app)
+		    base::stop("Cannot find a suitable app in file ",app)
 
 	    } else {
 		.self$app <- app
@@ -34,31 +34,6 @@ RhttpdApp <- setRefClass(
 
 	    .self$path <- ifelse(.self$name=='httpd','', paste('/custom',.self$name,sep='/'))
 	    callSuper(...)
-	},
-	invoke_handler = function(env=NULL){
-	    if (!is.null(appEnv)){
-		oldwd <- setwd(dirname(appEnv$.appFile))
-		on.exit(setwd(oldwd))
-
-		file_path = basename(appEnv$.appFile)
-		mtime <- as.integer(file.info(file_path)$mtime)
-
-		if (mtime > appEnv$.mtime){
-		    appEnv$.mtime <<- mtime
-		    sys.source(file_path,envir=appEnv)
-		    if (exists(app$name,appEnv,inherits=FALSE))
-			app <<- get(app$name,appEnv)
-		    else if (exists('app',appEnv,inherits=FALSE))
-			app <<- get('app',appEnv)
-		    else
-			base::stop("Cannot find a suitable app in file",appEnv$.appFile)
-		}
-	    }
-	    if (is(app,'function')) {
-		app(env)
-	    } else {
-		app$call(env)
-	    }
 	}
     )
 )
@@ -263,14 +238,16 @@ Rhttpd <- setRefClass(
 	    if(app$name=='httpd'){
 		.self$httpdOrig <- tools:::httpd
 		assignInNamespace(
-		    app$name, 
-		    function(path,query,postBody,headers) handler(app,path,query,postBody,headers),
+		    app$name,
+		    function(path,query,postBody,headers) 
+			.self$handler(app$name,path,query,postBody,headers), 
 		    'tools'
 		)
 	    } else {
 		assign(
 		    app$name, 
-		    function(path,query,postBody,headers) handler(app,path,query,postBody,headers),
+		    function(path,query,postBody,headers) 
+			.self$handler(app$name,path,query,postBody,headers), 
 		    tools:::.httpd.handlers.env
 		)
 	    }
@@ -356,11 +333,37 @@ Rhttpd <- setRefClass(
 		str(as.list(env))
 	    env
 	},
-	handler = function(app,path,query,postBody,headers){
+	handler = function(appName,path,query,postBody,headers){
 	    if (debug()>0){
 		cat('Request:',path,'\n')
 	    }
-	    res <- try(app$invoke_handler(build_env(app$path,path,query,postBody,headers)))
+	    app <- appList[[appName]]
+	    if (is.null(app)){
+		base::stop("No app installed named ",appName)
+		return()
+	    }
+	    if (!is.null(app$appEnv)){
+		file_path = app$appEnv$.appFile
+		mtime <- as.integer(file.info(file_path)$mtime)
+
+
+		if (mtime > app$appEnv$.mtime){
+		    add(name=appName,app=file_path)
+		}
+		app <- appList[[appName]]
+		if (is.null(app)){
+		    stop("No app installed named ",appName)
+		    return()
+		}
+	    }
+	    env <- build_env(app$path,path,query,postBody,headers)
+	    if (is(app$app,'function')) {
+		res <- try(app$app(env))
+	    } else {
+		oldwd <- setwd(dirname(app$appEnv$.appFile))
+		on.exit(setwd(oldwd))
+		res <- try(app$app$call(env))
+	    }
 	    if (inherits(res,'try-error') || (is.character(res) && length(res) == 1))
 		res
 	    else {
