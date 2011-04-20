@@ -21,11 +21,26 @@ Request <- setRefClass(
 	      'multipart/mixed'
 	    )
 
+	    # Adjust script name if we're sitting behind a reverse proxy
+	    #
+	    # Nginx example config:
+	    #
+	    #	location /rhttpd {
+	    #	    rewrite ^/rhttpd(.*)$  $1 break;
+	    #	    proxy_pass http://127.0.0.1:12344;
+	    #	    proxy_set_header X-Script-Name /rhttpd;
+	    #	}
+	    #
+	    
+	    if (exists('HTTP_X_SCRIPT_NAME',env)){
+		env[['HTTP_X_SCRIPT_NAME']] <<- sub('/$','',env[['HTTP_X_SCRIPT_NAME']])
+		env[['SCRIPT_NAME']] <<- paste(env[['HTTP_X_SCRIPT_NAME']],env[['SCRIPT_NAME']],sep='')
+	    } 
+
 	    callSuper(...)
 	},
 	body = function()            env[["rack.input"]],
 	scheme = function()          env[["rack.url_scheme"]],
-	script_name = function()     env[["SCRIPT_NAME"]],
 	path_info = function()       env[["PATH_INFO"]],
 	port = function()            as.integer(env[["SERVER_PORT"]]),
 	request_method = function()  env[["REQUEST_METHOD"]],
