@@ -1,12 +1,12 @@
-Rack: A web server interface for R
+Rook: A web server interface for R
 =======================================
 
 This specification defines the interface between web servers and R applications.
 
-Rack applications
+Rook applications
 -----------------
 
-A Rack application is an R reference class object that implements a 'call'
+A Rook application is an R reference class object that implements a 'call'
 method or an R closure that takes exactly one argument, an environment,
 and returns a list with three named elements: the 'status', the 'headers',
 and the 'body'.
@@ -14,10 +14,10 @@ and the 'body'.
 Hello World
 -----------
 
-Here is a basic Rack application as a closure that implements 'hello world':
+Here is a basic Rook application as a closure that implements 'hello world':
 
     function(env){
-	body = paste('<h1>Hello World! This is Rack',env$rack.version,'.</h1>')
+	body = paste('<h1>Hello World! This is Rook',env$rook.version,'.</h1>')
 	list(
 	    status = 200L,
 	    headers = list(
@@ -33,7 +33,7 @@ And the equivalent referenc class example:
 	'HelloWorld',
 	methods = list(
 	    call = function(env){
-		body = paste('<h1>Hello World! This is Rack',env$rack.version,'.</h1>')
+		body = paste('<h1>Hello World! This is Rook',env$rook.version,'.</h1>')
 		list(
 		    status = 200L,
 		    headers = list(
@@ -80,17 +80,17 @@ variables:
     presence or absence of these variables should correspond with the presence
     or absence of the appropriate HTTP header in the request.
 
-In addtion, the environment must include the following Rack-specific variables:
+In addtion, the environment must include the following Rook-specific variables:
 
-- rack.version:	    This version of Rack.
-- rack.url_scheme:    http or https, depending on the request URL.
-- rack.input:	    See below, the input stream.
-- rack.errors:	    See below, the error stream.
+- rook.version:	    This version of Rook.
+- rook.url_scheme:    http or https, depending on the request URL.
+- rook.input:	    See below, the input stream.
+- rook.errors:	    See below, the error stream.
 
 The Input Stream
 ----------------
 
-The rack.input variable must contain an object created from a reference
+The rook.input variable must contain an object created from a reference
 class and respond to readLines, read, and rewind:
 
 readLines: takes one argument, the number of lines to read. Includes partial ending line.
@@ -100,7 +100,7 @@ rewind: Rewinds the input stream back to the beginning.
 The Error Stream
 ----------------
 
-The rack.error variable must contain an object created from a reference
+The rook.error variable must contain an object created from a reference
 class and must respond to flush and cat:
 
 flush: called with no arguments and makes the error stream immediately appear.
