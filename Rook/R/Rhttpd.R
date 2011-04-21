@@ -14,7 +14,7 @@ RhttpdApp <- setRefClass(
 		.self$appEnv <- new.env(parent=globalenv())
 		sys.source(basename(app),envir=.self$appEnv)
 		appEnv$.mtime <<- as.integer(file.info(basename(app))$mtime)
-		appEnv$.appFile <<- app
+		appEnv$.appFile <<- normalizePath(app)
 
 		if (exists(.self$name,.self$appEnv,inherits=FALSE))
 		    .self$app <- get(.self$name,.self$appEnv)
@@ -355,13 +355,14 @@ Rhttpd <- setRefClass(
 		    stop("No app installed named ",appName)
 		    return()
 		}
+
+		oldwd <- setwd(dirname(app$appEnv$.appFile))
+		on.exit(setwd(oldwd))
 	    }
 	    env <- build_env(app$path,path,query,postBody,headers)
 	    if (is(app$app,'function')) {
 		res <- try(app$app(env))
 	    } else {
-		oldwd <- setwd(dirname(app$appEnv$.appFile))
-		on.exit(setwd(oldwd))
 		res <- try(app$app$call(env))
 	    }
 	    if (inherits(res,'try-error') || (is.character(res) && length(res) == 1))
