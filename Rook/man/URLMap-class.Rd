@@ -36,12 +36,14 @@ s$add(
         }
     )
 )
-s$start(quiet=TRUE)
 \dontrun{
+s$start(quiet=TRUE)
 s$browse('pingpong')
 }
 s$remove('pingpong')
+\dontrun{
 s$stop()
+}
 rm(s)
 }
 \keyword{classes}

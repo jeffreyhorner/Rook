@@ -16,7 +16,9 @@ A Rook application that serves static files from a root directory, according to 
 # url in the location bar with the file you want to view. Try adding /passwd.
 
 s <- Rhttpd$new()
+\dontrun{
 s$start(quiet=TRUE)
+}
 s$add(name="etc",app=File$new('/etc'))
 \dontrun{
 s$browse('etc') # Opens a browser window to the app.

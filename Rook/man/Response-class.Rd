@@ -13,7 +13,9 @@ A convenience class for creating \code{\link{Rook}} responses.
 }
 \examples{
 s <- Rhttpd$new()
+\dontrun{
 s$start(quiet=TRUE)
+}
 s$add(name="response",
     app=function(env){
         req <- Request$new(env)

@@ -41,7 +41,9 @@ setRefClass(
     )
 )
 s <- Rhttpd$new()
+\dontrun{
 s$start(quiet=TRUE)
+}
 s$add(name="middle",app=getRefClass('FooBar')$new())
 \dontrun{
 s$browse('middle') # Opens a browser window to the app.

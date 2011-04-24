@@ -40,11 +40,11 @@ automatically launch your favorite web browser.
 # added.
 
 s <- Rhttpd$new()
-s$start(quiet=TRUE)
-s$print()
 \dontrun{
+s$start(quiet=TRUE)
 s$browse(1)
 }
+s$print()
 
 # Be sure to install the Hmisc package before installing and running
 # this application. You will want to; it's a pretty good one.
@@ -65,7 +65,9 @@ s$add(
 s$print()
 
 #  Stops the server but doesn't uninstall the app
+\dontrun{
 s$stop()
+}
 s$remove(all=TRUE)
 rm(s)
 }

@@ -14,7 +14,9 @@ A convenience class for working with a \code{\link{Rook}} environment. Be sure t
 # 
 ls_str <- function(s) paste(capture.output(str(s),file=NULL),collapse='\n')
 s <- Rhttpd$new()
+\dontrun{
 s$start(quiet=TRUE)
+}
 s$add(name="request",
     app=function(env){
         req <- Request$new(env)

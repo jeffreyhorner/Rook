@@ -10,7 +10,9 @@ A convenience object for parsing multipart/form-data POST payloads.
 }
 \examples{
 s <- Rhttpd$new()
+\dontrun{
 s$start(quiet=TRUE)
+}
 s$add(name="multi",
     app=function(env){
         req <- Request$new(env)

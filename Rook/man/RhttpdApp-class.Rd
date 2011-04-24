@@ -35,15 +35,17 @@ s$add(RhttpdApp$new(
     name='summary',
     app=system.file('exampleApps/summary.R',package='Rook')
 ))
-s$start(quiet=TRUE)
 \dontrun{
+s$start(quiet=TRUE)
 s$browse(1)
 }
 s$remove(all=TRUE)
 
 #  Stops the server but doesn't uninstall the app
+\dontrun{
 s$stop()
-
+}
+s$remove(all=TRUE)
 rm(s)
 }
 \keyword{classes}
