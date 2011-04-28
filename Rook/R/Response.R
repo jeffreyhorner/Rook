@@ -7,6 +7,9 @@ Response <- setRefClass(
 	    .self$headers <- as.environment(list('Content-Type'='text/html'))
 	    if (length(headers) > 0)
 		.self$headers <- as.environment(c(as.list(.self$headers),headers))
+	    if (!is.character(body) && !is.raw(body)){
+		base::stop('Body must be a character or raw vector, not',typeof(body))
+	    }
 	    .self$body <- body 
 	    .self$length <- Utils$bytesize(.self$body)
 	    callSuper(...)

@@ -36,7 +36,7 @@ File <- setRefClass(
 	},
 	serving = function(){
 	    fi <- file.info(path)
-	    if (fi$size <= 0) {
+	    if (fi$size > 0) {
 		body = readBin(path,'raw',fi$size)
 	    } else {
 		body <- path

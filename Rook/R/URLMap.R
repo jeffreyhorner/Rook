@@ -20,7 +20,7 @@ URLMap <- setRefClass(
 	call = function(env){
 	    path <- env[['PATH_INFO']]
 	    for (url in names(map)){
-	        cat('matching url',url,'to',path,'\n')
+	        #cat('matching url',url,'to',path,'\n')
 		if (grepl(url,path))
 		    return(map[[url]]$call(env))
 	    }
