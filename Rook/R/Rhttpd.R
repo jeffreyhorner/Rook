@@ -92,7 +92,7 @@ RhttpdErrorStream <- setRefClass(
     methods = list(
 	flush = function() { base::flush(stderr()) },
 	cat = function(...,sep=" ",fill=FALSE,labels=NULL)
-	{ base::cat(...,sep=sep,fill=fill,labels=lables,file=stderr()) }
+	{ base::cat(...,sep=sep,fill=fill,labels=labels,file=stderr()) }
     )
 )
 
