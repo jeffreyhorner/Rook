@@ -1,3 +1,29 @@
+.rApacheInputStream <- setRefClass(
+    'rApacheInputStream',
+    methods = list(
+	read_lines = function(n = -1L){
+	    if (n<=0) return(character())
+	    readLines(n=n,warn=FALSE)
+	},
+	read = function(l = -1L){
+	    if (l <= 0 ) return(raw())
+	    receiveBin(l)
+	},
+	rewind = function(){
+	    warning("rApache doesn't support rewind()")
+	}
+    )
+)
+
+.rApacheErrorStream <- setRefClass(
+    'rApacheErrorStream',
+    methods = list(
+	flush = function() { base::flush(stderr()) },
+	cat = function(...,sep=" ",fill=FALSE,labels=NULL)
+	{ base::cat(...,sep=sep,fill=fill,labels=labels,file=stderr()) }
+    )
+)
+
 Server <- setRefClass(
     'rApacheServer',
     fields = c('appPath','appList'),
@@ -21,8 +47,15 @@ Server <- setRefClass(
 
 	    cat(paste(names(env),collapse=' '),file=stderr())
 
-	    assign('CONTENT_LENGTH',SERVER$clength,env)
-	    assign('CONTENT_TYPE',SERVER$content_type,env)
+	    if (exists('HTTP_CONTENT_LENGTH',env))
+		assign('CONTENT_LENGTH',get('HTTP_CONTENT_LENGTH',env),env)
+	    else 
+		assign('CONTENT_LENGTH',SERVER$clength,env)
+
+	    if (exists('HTTP_CONTENT_TYPE',env))
+		assign('CONTENT_TYPE',get('HTTP_CONTENT_TYPE',env),env)
+	    else
+		assign('CONTENT_TYPE',SERVER$content_type,env)
 
 	    assign('PATH_INFO',SERVER$path_info,env)
 	    assign('SCRIPT_NAME',sub(SERVER$path_info,'',SERVER$uri),env)
@@ -35,47 +68,15 @@ Server <- setRefClass(
 	    assign('SERVER_PORT',hostport[2],env)
 
 	    assign('rook.version',packageDescription('Rook',fields='Version'),env)
-	    assign(
-		'rook.url_scheme',
-		strsplit(get('HTTP_ORIGIN',env),':',fixed=TRUE)[[1]][1]
-		,env
-	    )
-	    assign(
-		'rook.input',
-		setRefClass(
-		    'rApacheInputStream',
-		    methods = list(
-			initialize = function(...){
-			    callSuper(...)
-			},
-			read_lines = function(n = -1L){
-			    if (n<=0) return(character())
-			    readLines(n=n,warn=FALSE)
-			},
-			read = function(l = -1L){
-			    if (l <= 0 ) return(raw())
-			    receiveBin(l)
-			},
-			rewind = function(){
-			    warning("rApache doesn't support rewind()")
-			}
-		    )
-		)$new(),
-		env
-	    )
-
-	    assign(
-		'rook.errors',
-		setRefClass(
-		    'rApacheErrorStream',
-		    methods = list(
-			flush = function() { base::flush(stderr()) },
-			cat = function(...,sep=" ",fill=FALSE,labels=NULL)
-			{ base::cat(...,sep=sep,fill=fill,labels=labels,file=stderr()) }
-		    )
-		)$new(),
-		env
-	    )
+	    if (exists('HTTP_ORIGIN',env)){
+		assign(
+		    'rook.url_scheme',
+		    strsplit(get('HTTP_ORIGIN',env),':',fixed=TRUE)[[1]][1]
+		    ,env
+		)
+	    }
+	    assign('rook.input',.rApacheInputStream$new(),env)
+	    assign('rook.errors',.rApacheErrorStream$new(),env)
 
 	    env
 	},
@@ -97,7 +98,7 @@ Server <- setRefClass(
 	    if (!is.null(names(res$body)) && names(res$body)[1] == 'file'){
 		sendBin(readBin(res$body[1],'raw',n=file.info(res$body[1])$size))
 	    } else {
-		sendbin(res$body)
+		sendBin(res$body)
 	    }
 
 	    res$status
