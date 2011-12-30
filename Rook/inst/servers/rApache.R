@@ -57,8 +57,8 @@ Server <- setRefClass(
 	    else
 		assign('CONTENT_TYPE',SERVER$content_type,env)
 
-	    assign('PATH_INFO',SERVER$path_info,env)
-	    assign('SCRIPT_NAME',sub(SERVER$path_info,'',SERVER$uri),env)
+	    assign('SCRIPT_NAME',SERVER$cmd_path,env)
+	    assign('PATH_INFO',sub(SERVER$cmd_path,'',SERVER$uri),env)
 	    assign('QUERY_STRING',SERVER$args,env)
 	    assign('QUERY_STRING',ifelse(is.null(SERVER$args),'',SERVER$args),env)
 	    assign('REQUEST_METHOD',SERVER$method,env)
