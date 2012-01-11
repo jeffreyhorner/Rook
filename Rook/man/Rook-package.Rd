@@ -42,7 +42,8 @@ function(env){
 And the equivalent reference class example:
 
 \preformatted{
-setRefClass('HelloWorld',
+setRefClass(
+  'HelloWorld',
   methods = list(
     call = function(env){
       list(
@@ -118,7 +119,7 @@ The rook.error variable must contain an object created from a reference
 class that implements \code{flush()} and \code{cat()}:
 \describe{
     \item{\code{flush()}:}{called with no arguments and makes the error stream immediately appear.}
-    \item{\code{cat(...,sep=" ",fill=FALSE,labels=NULL)}:}{called with the same arguments as R's \code{"\link{cat}"} without the \code{file} and append \code{argument}.}
+    \item{\code{cat(...,sep=" ",fill=FALSE,labels=NULL)}:}{called with the same arguments as R's \code{"\link[base]{cat}"} without the \code{file} and append \code{argument}.}
 }
 }
 

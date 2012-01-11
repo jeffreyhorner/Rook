@@ -6,7 +6,7 @@
 
 \title{Class \code{Brewery}}
 \description{
-A \code{\link{Middleware}} class for mapping URLs to a directory of files that are subsequently passed to \code{\link{brew}}. When a file is brewed, the two variables \code{req} (an object of class \code{\link{Request}}) and \code{res} (an object of class \code{\link{Response}}) are available for use.
+A \code{\link{Middleware}} class for mapping URLs to a directory of files that are subsequently passed to \code{\link[brew]{brew}}. When a file is brewed, the two variables \code{req} (an object of class \code{\link{Request}}) and \code{res} (an object of class \code{\link{Response}}) are available for use.
 
 }
 \section{Methods}{
@@ -42,6 +42,6 @@ rm(s)
 }
 
 \seealso{
-\code{\link{Rhttpd}}, \code{\link{Builder}}, \code{\link{Redirect}}, and \code{\link{brew}}.
+\code{\link{Rhttpd}}, \code{\link{Builder}}, \code{\link{Redirect}}, and \code{\link[brew]{brew}}.
 }
 \keyword{classes}

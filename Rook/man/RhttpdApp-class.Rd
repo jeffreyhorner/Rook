@@ -21,7 +21,7 @@ or less for application names.
 
 NOTE: When a file is given as the value of the \code{app} argument
 to \code{new()}, it is monitored for timestamp changes. If a change
-occurs in the modification time as returned by \code{\link{file.info}},
+occurs in the modification time as returned by \code{\link[base]{file.info}},
 then the file is sourced prior to handling subsequent requests.
 
 }

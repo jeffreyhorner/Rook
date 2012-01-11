@@ -54,13 +54,16 @@ s$print()
 
 s$add(
     app=system.file('exampleApps/helloworld.R',package='Rook'),
-    name='hello')
+    name='hello'
+)
 s$add(
     app=system.file('exampleApps/helloworldref.R',package='Rook'),
-    name='helloref')
+    name='helloref'
+)
 s$add(
     app=system.file('exampleApps/summary.R',package='Rook'),
-    name='summary')
+    name='summary'
+)
 
 s$print()
 
@@ -74,7 +77,7 @@ rm(s)
 \keyword{classes}
 \section{Methods}{
   \describe{
-    \item{\code{open(x)} or \code{browse(x)}:}{ Calls \code{\link{browseURL}} on the installed Rook application designated by \code{x}. \code{x} is either an integer or a character string. See the output of \code{print()}.}
+    \item{\code{open(x)} or \code{browse(x)}:}{ Calls \code{\link[utils]{browseURL}} on the installed Rook application designated by \code{x}. \code{x} is either an integer or a character string. See the output of \code{print()}.}
     \item{\code{print()} or \code{show()}:}{ Lists the installed Rook applications.}
     \item{\code{remove(app,all=FALSE)}:}{ Removes the application known to the server. \code{app} can be an \code{RhttpdApp} object previously added, the name of the application as a character string, or an index as a numeric or integer value. See the output of \code{print()}.}
     \item{\code{full_url(i)}:}{ Returns the absolute url to the application for the given index.}
