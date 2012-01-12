@@ -98,11 +98,12 @@ RhttpdErrorStream <- setRefClass(
 
 Rhttpd <- setRefClass(
     'Rhttpd',
-    fields = c('appList','listenAddr','httpdOrig'),
+    fields = c('appList','listenAddr','httpdOrig','listenPort'),
     methods = list(
 	initialize = function(...){
 	    appList <<- list()
 	    listenAddr <<- '127.0.0.1'
+	    listenPort <<- 0L
 	    callSuper(...)
 	},
 	finalize = function(){
@@ -112,7 +113,7 @@ Rhttpd <- setRefClass(
 	    }
 	},
 	full_url = function(i){
-	    paste('http://',listenAddr,':',tools:::httpdPort,appList[[i]]$path,sep='')
+	    paste('http://',listenAddr,':',listenPort,appList[[i]]$path,sep='')
 	},
 	launch = function(...){
 	    .self$start(quiet=TRUE)		
@@ -149,14 +150,10 @@ Rhttpd <- setRefClass(
 	    if (length(appList) == 0)
 		add(RhttpdApp$new(system.file('exampleApps/RookTestApp.R',package='Rook'),name='RookTest'))
 
-	    env <- environment(tools::startDynamicHelp)
 	    if(nzchar(Sys.getenv("R_DISABLE_HTTPD"))) {
-		unlockBinding("httpdPort", env)
-		assign('httpdPort',-1L,env)
-		lockBinding("httpdPort", env)
 		warning("httpd server disabled by R_DISABLE_HTTPD", immediate. = TRUE)
 		utils::flush.console()
-		return(tools:::httpdPort)
+		return(invisible())
 	    }
 
 	    if(grepl('rstudio',base::.Platform$GUI,ignore.case=TRUE)){
@@ -165,10 +162,10 @@ Rhttpd <- setRefClass(
 		return(invisible())
 	    }
 
-	    if(tools:::httpdPort > 0){
+	    if(listenPort > 0){
 		if (quiet) return(invisible())
-		base::stop("server already running on port ",tools:::httpdPort,". Consider calling the stop() method first.")
-	    } else if (tools:::httpdPort < 0) {
+		base::stop("server already running on port ",listenPort,". Consider calling the stop() method first.")
+	    } else if (listenPort < 0) {
 		if (quiet) return(invisible())
 		base::stop("server could not be started on an earlier attempt")
 	    }
@@ -191,9 +188,7 @@ Rhttpd <- setRefClass(
 		if (status == 0L) {
 		    OK <- TRUE
 		    listenAddr <<- listen
-		    unlockBinding("httpdPort", env)
-		    assign('httpdPort',ports[i],env)
-		    lockBinding("httpdPort", env)
+		    listenPort <<- ports[i]
 		    break
 		}
 		if (status != -2L) break
@@ -206,26 +201,21 @@ Rhttpd <- setRefClass(
 	    } else {
 		warning("failed to start the httpd server", immediate. = TRUE)
 		utils::flush.console()
-		unlockBinding("httpdPort", env)
-		assign('httpdPort',-1L,env)
-		lockBinding("httpdPort", env)
+		listenPort <<- -1L
 		return(invisible())
 	    }
 
 	    if (!quiet){
-		cat('\nServer started on host',listen,'and port',tools:::httpdPort,'. App urls are:\n\n')
+		cat('\nServer started on host',listen,'and port',listenPort,'. App urls are:\n\n')
 		invisible(lapply(names(appList),function(i){
-		    cat('\thttp://',listen,':',tools:::httpdPort,appList[[i]]$path,'\n',sep='')
+		    cat('\thttp://',listen,':',listenPort,appList[[i]]$path,'\n',sep='')
 		}))
 	    }
 	    invisible()
 	},
 	stop = function(){
-	    env <- environment(tools::startDynamicHelp)
-	    unlockBinding("httpdPort", env)
-	    assign('httpdPort',0L,env) 
-	    lockBinding("httpdPort", env)
 	    invisible(.Internal(stopHTTPD()))
+	    listenPort <<- 0L
 	},
 	add = function(app=NULL,name=NULL){
 
@@ -236,13 +226,14 @@ Rhttpd <- setRefClass(
 
 	    appList[[app$name]] <<- app
 	    if(app$name=='httpd'){
-		.self$httpdOrig <- tools:::httpd
-		assignInNamespace(
-		    app$name,
-		    function(path,query,postBody,headers) 
-			.self$handler(app$name,path,query,postBody,headers), 
-		    'tools'
-		)
+		base::stop("Rook no longer supports assignment to tools:::httpd")
+		#.self$httpdOrig <- tools:::httpd
+		#assignInNamespace(
+		#    app$name,
+		#    function(path,query,postBody,headers) 
+		#	.self$handler(app$name,path,query,postBody,headers), 
+		#    'tools'
+		#)
 	    } else {
 		assign(
 		    app$name, 
@@ -401,8 +392,8 @@ Rhttpd <- setRefClass(
 	    }
 	},
 	print = function() {
-	    if (tools:::httpdPort > 0){
-		cat("Server started on ",listenAddr,":",tools:::httpdPort,"\n",sep='')
+	    if (listenPort > 0){
+		cat("Server started on ",listenAddr,":",listenPort,"\n",sep='')
 	    } else {
 		cat("Server stopped\n")
 	    }
