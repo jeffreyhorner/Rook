@@ -159,6 +159,8 @@ Rhttpd <- setRefClass(
 	    if(grepl('rstudio',base::.Platform$GUI,ignore.case=TRUE)){
 		if (!missing(port))
 		    warning("RStudio has already started the web server on port ",tools:::httpdPort)
+		listenAddr <<- listen
+		listenPort <<- tools:::httpdPort
 		return(invisible())
 	    }
 
