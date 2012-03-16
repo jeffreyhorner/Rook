@@ -161,6 +161,8 @@ Rhttpd <- setRefClass(
 		listenPort <<- tools:::httpdPort
 		if (!missing(port))
 		    warning("RStudio has already started the web server on port ",tools:::httpdPort)
+		listenAddr <<- listen
+		listenPort <<- tools:::httpdPort
 		return(invisible())
 	    }
 
