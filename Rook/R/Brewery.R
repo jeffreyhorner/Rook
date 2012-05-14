@@ -26,7 +26,10 @@ Brewery <- setRefClass(
 	    if (length(grep(url,path))>0 && file.exists(file_path)){
 		oldwd <- setwd(dirname(file_path))
 		on.exit(setwd(oldwd))
-		res$write(capture.output(brew(basename(file_path),envir=opt)))
+		res$write(
+         paste(capture.output(brew(basename(file_path),envir=opt)),
+         collapse="\n")
+      )
 		res$finish()
 	    } else
 		app$call(env)
