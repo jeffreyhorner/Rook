@@ -96,7 +96,7 @@ Utils <- setRefClass(
 	},
 	unescape = function(s=NULL){
 	    if(is.null(s)) base::stop("Need a character vector argument")
-	    chartr('+',' ',utils::URLdecode(s))
+	    utils::URLdecode(chartr('+',' ',s))
 	},
 	parse_query = function(qs=NULL, d=DEFAULT_SEP) {
 	    if (is.null(qs)) base::stop("Need a character vector argument")
