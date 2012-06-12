@@ -32,7 +32,7 @@ rm(x)
 \section{Methods}{
   \describe{
     \item{\code{bytesize(string=NULL)}:}{ Returns size in bytes for \code{string}, a character vector. }
-    \item{\code{unescape(s=NULL)}:}{ returns the url decoded value of the character vector \code{s}.Also replaces the space character with \code{'+'}. }
+    \item{\code{unescape(s=NULL)}:}{ returns the url decoded value of the character vector \code{s}. Also replaces the \code{'+'} character with a space. }
     \item{\code{status_code(status=NULL)}:}{ returns integer value for the given HTTP \code{status}, which can either be numeric or or a character vector describing the status. Returns \code{as.integer(500)} if \code{status} is NULL.}
     \item{\code{escape_html(string=NULL)}:}{ replaces \code{"&"}, \code{"<"}, \code{">"}, \code{"'"}, and \code{'"'} with entity equivalents. }
     \item{\code{raw.match(needle=NULL, haystack=NULL, all=TRUE)}:}{ returns index position of \code{needle} in  \code{haystack}. All matched indexes are returned by default. \code{needle} is either a raw vector or character string. \code{haystack} is a raw vector.}
