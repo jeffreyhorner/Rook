@@ -2,40 +2,40 @@ RhttpdApp <- setRefClass(
     'RhttpdApp',
     fields = c('app','name','path','appEnv'),
     methods = list(
-	initialize = function(app=NULL,name=NULL,...){
-	    if (is.null(name) || !is.character(name))
-		base::stop("Need a proper app 'name'")
+       initialize = function(app=NULL,name=NULL,...){
+          if (is.null(name) || !is.character(name))
+             base::stop("Need a proper app 'name'")
 
-	    .self$name <- name
+          .self$name <- name
 
-	    if (is.character(app) && file.exists(app)){
-		oldwd <- setwd(dirname(app))
-		on.exit(setwd(oldwd))
-		.self$appEnv <- new.env(parent=globalenv())
-		sys.source(basename(app),envir=.self$appEnv)
-		appEnv$.mtime <<- as.integer(file.info(basename(app))$mtime)
-		appEnv$.appFile <<- normalizePath(app)
+          if (is.character(app) && file.exists(app)){
+             oldwd <- setwd(dirname(app))
+             on.exit(setwd(oldwd))
+             appEnv <<- new.env(parent=globalenv())
+             appEnv$.appFile <<- normalizePath(basename(app))
+             appEnv$.mtime <<- as.integer(file.info(appEnv$.appFile)$mtime)
+             sys.source(appEnv$.appFile,envir=.self$appEnv)
 
-		if (exists(.self$name,.self$appEnv,inherits=FALSE))
-		    .self$app <- get(.self$name,.self$appEnv)
-		else if (exists('app',.self$appEnv,inherits=FALSE))
-		    .self$app <- get('app',.self$appEnv)
-		else
-		    base::stop("Cannot find a suitable app in file ",app)
+             if (exists(.self$name,.self$appEnv,inherits=FALSE))
+                .self$app <- get(.self$name,.self$appEnv)
+             else if (exists('app',.self$appEnv,inherits=FALSE))
+                .self$app <- get('app',.self$appEnv)
+             else
+                base::stop("Cannot find a suitable app in file ",app)
 
-	    } else {
-		.self$app <- app
-		.self$name <- name
-		.self$appEnv <- NULL
-	    }
+          } else {
+             .self$app <- app
+             .self$name <- name
+             .self$appEnv <- NULL
+          }
 
-	    if (!is_rookable(.self$app))
-		base::stop("App is not rookable'")
+          if (!is_rookable(.self$app))
+             base::stop("App is not rookable'")
 
-	    .self$path <- ifelse(.self$name=='httpd','', paste('/custom',.self$name,sep='/'))
-	    callSuper(...)
-	}
-    )
+          .self$path <- ifelse(.self$name=='httpd','', paste('/custom',.self$name,sep='/'))
+          callSuper(...)
+       }
+   )
 )
 
 RhttpdInputStream <- setRefClass(
