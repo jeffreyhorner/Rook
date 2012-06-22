@@ -111,7 +111,6 @@ Request <- setRefClass(
 		env[['rook.request.form_list']] <<- Multipart$parse(env)
 		if (length(env[['rook.request.form_list']]) == 0){
 		    form_vars <- env[['rook.input']]$read()
-		    cat('form_vars',rawToChar(form_vars),'\n')
 		    env[['rook.request.form_list']] <<- Utils$parse_query(rawToChar(form_vars))
 		}
 	    }
