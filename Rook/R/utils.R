@@ -226,6 +226,10 @@ Multipart <- setRefClass(
 
 	    content_length = as.integer(env$CONTENT_LENGTH)
 
+        # Bail if not a multipart content body
+        if (!grepl('multipart',env$CONTENT_TYPE))
+            return(NULL)
+
 	    # Some constants regarding boundaries
 	    boundary <- paste('--',gsub('^multipart/.*boundary="?([^";,]+)"?','\\1',env$CONTENT_TYPE,perl=TRUE),sep='')
 	    boundary_size <- Utils$bytesize(boundary)
