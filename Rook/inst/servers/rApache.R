@@ -63,6 +63,9 @@ Server <- setRefClass(
 	    assign('QUERY_STRING',ifelse(is.null(SERVER$args),'',SERVER$args),env)
 	    assign('REQUEST_METHOD',SERVER$method,env)
 
+        assign('REMOTE_HOST',SERVER$remote_host,env)
+        assign('REMOTE_ADDR',SERVER$remote_ip,env)
+
 	    hostport <- strsplit(get('HTTP_HOST',env),':',fixed=TRUE)[[1]]
 
 	    assign('SERVER_NAME',hostport[1],env)
