@@ -146,78 +146,54 @@ Rhttpd <- setRefClass(
 	    base::stop("Argument must be an integer or character")
 	},
 	browse = function(x) open(x),
-	start = function(listen='127.0.0.1',port=getOption('help.ports'),quiet=FALSE){
-	    if (length(appList) == 0)
-		add(RhttpdApp$new(system.file('exampleApps/RookTestApp.R',package='Rook'),name='RookTest'))
+   start = function(listen='127.0.0.1',port=getOption('help.ports'),quiet=FALSE){
 
-	    if(nzchar(Sys.getenv("R_DISABLE_HTTPD"))) {
-		warning("httpd server disabled by R_DISABLE_HTTPD", immediate. = TRUE)
-		utils::flush.console()
-		return(invisible())
-	    }
+      if(nzchar(Sys.getenv("R_DISABLE_HTTPD"))) {
+         warning("httpd server disabled by R_DISABLE_HTTPD", immediate. = TRUE)
+         utils::flush.console()
+         return(invisible())
+      }
 
-	    if(grepl('rstudio',base::.Platform$GUI,ignore.case=TRUE)){
-		# RStudio has already set up host and port
-		listenPort <<- tools:::httpdPort
-		if (!missing(port))
-		    warning("RStudio has already started the web server on port ",tools:::httpdPort)
-		return(invisible())
-	    }
+      if(grepl('rstudio',base::.Platform$GUI,ignore.case=TRUE)){
+         # RStudio has already set up host and port
+         listenPort <<- tools:::httpdPort
+         if (!missing(port))
+            warning("RStudio has already started the web server on port ",tools:::httpdPort)
+         return(invisible())
+      }
 
-	    if(listenPort > 0){
-		if (quiet) return(invisible())
-		base::stop("server already running on port ",listenPort,". Consider calling the stop() method first.")
-	    } else if (listenPort < 0) {
-		if (quiet) return(invisible())
-		base::stop("server could not be started on an earlier attempt")
-	    }
+      if (!missing(listen) && listen != '127.0.0.1'){
+         listen <- '127.0.0.1'
+         warning("This version of Rook can only listen on the loopback device.");
+      }
 
-	    
-	    ports <- port
-	    if (is.null(ports)) {
-		## Choose 10 random port numbers between 10000 and 32000.
-		## The random seed might match
-		## on multiple instances, so add the time as well.  But the
-		## time may only be accurate to seconds, so rescale it to
-		## 5 minute units.
-		ports <- 10000 + 22000*((stats::runif(10) + unclass(Sys.time())/300) %% 1)
-	    }
-	    ports <- as.integer(ports)
-	    for(i in seq_along(ports)) {
-		## the next can throw an R-level error,
-		## so do not assign port unless it succeeds.
-		status <- .Internal(startHTTPD(listen, ports[i]))
-		if (status == 0L) {
-		    OK <- TRUE
-		    listenAddr <<- listen
-		    listenPort <<- ports[i]
-		    break
-		}
-		if (status != -2L) break
-		## so status was -2, which means port in use
-	    }
-	    if (OK) {
-		if (!quiet) message(" done")
-		utils::flush.console()
-		## FIXME: actually test the server
-	    } else {
-		warning("failed to start the httpd server", immediate. = TRUE)
-		utils::flush.console()
-		listenPort <<- -1L
-		return(invisible())
-	    }
+      if (!missing(port)){
+         oldPorts <- getOption('help.ports')
+         on.exit(options(help.ports=oldPorts))
+         options(help.ports=port)
+      }
 
-	    if (!quiet){
-		cat('\nServer started on host',listen,'and port',listenPort,'. App urls are:\n\n')
-		invisible(lapply(names(appList),function(i){
-		    cat('\thttp://',listen,':',listenPort,appList[[i]]$path,'\n',sep='')
-		}))
-	    }
-	    invisible()
-	},
+      if (length(appList) == 0)
+         add(RhttpdApp$new(system.file('exampleApps/RookTestApp.R',package='Rook'),name='RookTest'))
+
+
+      listenPort <<- startDynamicHelp(TRUE)
+
+      if (listenPort == 0){
+         base::stop("The internal web server could not be started!")
+      }
+
+      if (!quiet){
+         cat('\nServer started on host',listen,'and port',listenPort,'. App urls are:\n\n')
+         invisible(lapply(names(appList),function(i){
+            cat('\thttp://',listen,':',listenPort,appList[[i]]$path,'\n',sep='')
+               }))
+      }
+      invisible()
+   },
+
 	stop = function(){
-	    invisible(.Internal(stopHTTPD()))
-	    listenPort <<- 0L
+	    listenPort <<- startDynamicHelp(FALSE)
 	},
 	add = function(app=NULL,name=NULL){
 
@@ -326,73 +302,73 @@ Rhttpd <- setRefClass(
 		str(as.list(env))
 	    env
 	},
-	handler = function(appName,path,query,postBody,headers){
-	    if (debug()>0){
-		cat('Request:',path,'\n')
-	    }
-	    app <- appList[[appName]]
-	    if (is.null(app)){
-		base::stop("No app installed named ",appName)
-		return()
-	    }
-	    if (!is.null(app$appEnv)){
-		file_path = app$appEnv$.appFile
-		mtime <- as.integer(file.info(file_path)$mtime)
+   handler = function(appName,path,query,postBody,headers){
+      if (debug()>0){
+         cat('Request:',path,'\n')
+      }
+      app <- appList[[appName]]
+      if (is.null(app)){
+         base::stop("No app installed named ",appName)
+         return()
+      }
+      if (!is.null(app$appEnv)){
+         file_path = app$appEnv$.appFile
+         mtime <- as.integer(file.info(file_path)$mtime)
 
 
-		if (mtime > app$appEnv$.mtime){
-		    add(name=appName,app=file_path)
-		}
-		app <- appList[[appName]]
-		if (is.null(app)){
-		    stop("No app installed named ",appName)
-		    return()
-		}
+         if (mtime > app$appEnv$.mtime){
+            add(name=appName,app=file_path)
+         }
+         app <- appList[[appName]]
+         if (is.null(app)){
+            stop("No app installed named ",appName)
+            return()
+         }
 
-		oldwd <- setwd(dirname(app$appEnv$.appFile))
-		on.exit(setwd(oldwd))
-	    }
-	    env <- build_env(app$path,path,query,postBody,headers)
-	    if (is(app$app,'function')) {
-		res <- try(app$app(env))
-	    } else {
-		res <- try(app$app$call(env))
-	    }
-	    if (inherits(res,'try-error') || (is.character(res) && length(res) == 1))
-		res
-	    else {
-		# Only need to handle the case where body is a vector of strings
-		# We presume that if res$body is a location to a file then the
-		# app has so named it. We also presume that res$body may be
-		# a raw vector, but we let the internal web server deal with that.
-		if (is.character(res$body) && length(res$body) > 1){
-		    res$body <- paste(res$body,collapse='')
-		}
-		contentType <- res$headers$`Content-Type`;
-		res$headers$`Content-Type` <- NULL;
-		ret <- list(
-		    payload = res$body,
-		    `content-type` = contentType,
-		    headers = paste(names(res$headers),': ',res$headers,sep=''),
-		    `status code` = res$status
-		)
+         oldwd <- setwd(dirname(app$appEnv$.appFile))
+         on.exit(setwd(oldwd))
+      }
+      env <- build_env(app$path,path,query,postBody,headers)
+      if (is(app$app,'function')) {
+         res <- try(app$app(env))
+      } else {
+         res <- try(app$app$call(env))
+      }
+      if (inherits(res,'try-error') || (is.character(res) && length(res) == 1))
+         res
+      else {
+         # Only need to handle the case where body is a vector of strings
+         # We presume that if res$body is a location to a file then the
+         # app has so named it. We also presume that res$body may be
+         # a raw vector, but we let the internal web server deal with that.
+         if (is.character(res$body) && length(res$body) > 1){
+            res$body <- paste(res$body,collapse='')
+         }
+         contentType <- res$headers$`Content-Type`;
+         res$headers$`Content-Type` <- NULL;
+         ret <- list(
+            payload = res$body,
+            `content-type` = contentType,
+            headers = paste(names(res$headers),': ',res$headers,sep=''),
+            `status code` = res$status
+            )
 
-		# Change the name of payload to file in the case that
-		# payload *is* a filename
-		if (!is.null(names(res$body)) && names(res$body)[1] == 'file'){
-		    names(ret) <- c('file',names(ret)[-1])
-		    # Delete content length as Rhttpd will add it
-		    res$headers$`Content-Length` <- NULL;
-		    ret$headers = paste(names(res$headers),': ',res$headers,sep='')
-		}
+         # Change the name of payload to file in the case that
+         # payload *is* a filename
+         if (!is.null(names(res$body)) && names(res$body)[1] == 'file'){
+            names(ret) <- c('file',names(ret)[-1])
+            # Delete content length as Rhttpd will add it
+            res$headers$`Content-Length` <- NULL;
+            ret$headers = paste(names(res$headers),': ',res$headers,sep='')
+         }
 
-		if (debug()>0){
-		    cat('Response:\n')
-		    str(ret)
-		}
-		ret
-	    }
-	},
+         if (debug()>0){
+            cat('Response:\n')
+            str(ret)
+         }
+         ret
+      }
+   },
 	print = function() {
 	    if (listenPort > 0){
 		cat("Server started on ",listenAddr,":",listenPort,"\n",sep='')

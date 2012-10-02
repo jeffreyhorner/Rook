@@ -27,6 +27,8 @@ install the application named \code{RookTestApp} located in:
 
 Also, see \code{\link{browseURL}} to learn how to get R to
 automatically launch your favorite web browser.
+
+NOTE: This version of Rook can only listen on the loopback device.
 } 
 
 \seealso{
@@ -81,7 +83,7 @@ rm(s)
     \item{\code{print()} or \code{show()}:}{ Lists the installed Rook applications.}
     \item{\code{remove(app,all=FALSE)}:}{ Removes the application known to the server. \code{app} can be an \code{RhttpdApp} object previously added, the name of the application as a character string, or an index as a numeric or integer value. See the output of \code{print()}.}
     \item{\code{full_url(i)}:}{ Returns the absolute url to the application for the given index.}
-    \item{\code{start(listen='127.0.0.1', port=getOption('help.ports'), quiet=FALSE)}:}{ Starts the server on the given \code{listen} address and \code{port}. \code{listen} is always character string. Note that if there are no applications added to the object prior to starting, then the RookTestApp located in \code{system.file('exampleApps/RookTestApp.R',package='Rook')} is automatically added.}
+    \item{\code{start(listen='127.0.0.1', port=getOption('help.ports'), quiet=FALSE)}:}{ Starts the server on the loopback device and \code{port}. \code{listen} is always character string. Note that if there are no applications added to the object prior to starting, then the RookTestApp located in \code{system.file('exampleApps/RookTestApp.R',package='Rook')} is automatically added.}
     \item{\code{new()}:}{ Create a new \code{Rhttpd} object. }
     \item{\code{launch(...)}:}{ Combines the steps of starting the server, creating an \code{RhttpdApp} object, adding it to the server, and opening the app in the browser. \code{...} argument is passed to \code{RhttpdApp$new()}.}
     \item{\code{debug()}:}{ Returns the integer value provided by \code{getOption('Rhttpd_debug')} or 0 if the option is NULL. }

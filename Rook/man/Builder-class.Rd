@@ -34,9 +34,9 @@ s$add( name="Hmisc",
 )
 s$start(quiet=TRUE)
 s$browse('Hmisc') # Opens a browser window to the application.
-}
 s$remove(all=TRUE)
 s$stop()
+}
 }
 \seealso{
 \code{\link{Rhttpd}}, \code{\link{Static}}, \code{\link{Brewery}}, and \code{\link{Redirect}}.
