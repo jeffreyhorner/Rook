@@ -23,8 +23,6 @@ Brewery <- setRefClass(
          opt[['res']] <<- res;
          path = env[["PATH_INFO"]]
          file_path = file.path(root,path)
-         cat('wd:',getwd(),'file_path:',file_path,'\n',file=stderr())
-         cat('url:',url,'path:',path,'\n',file=stderr())
          if (length(grep(url,path))>0 && file.exists(file_path)){
             oldwd <- setwd(dirname(file_path))
             on.exit(setwd(oldwd))
