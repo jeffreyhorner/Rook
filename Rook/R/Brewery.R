@@ -23,7 +23,7 @@ Brewery <- setRefClass(
          opt[['res']] <<- res;
          path = env[["PATH_INFO"]]
          file_path = file.path(root,path)
-         if (length(grep(url,path))>0 && file.exists(file_path)){
+         if (grepl(url,path) && !grepl(paste(url,'$',sep=''),path) && file.exists(file_path)){
             oldwd <- setwd(dirname(file_path))
             on.exit(setwd(oldwd))
             res$write(
@@ -31,8 +31,9 @@ Brewery <- setRefClass(
                   collapse="\n")
                )
             res$finish()
-         } else
-         app$call(env)
+         } else {
+            app$call(env)
+         }
       }
    )
 )

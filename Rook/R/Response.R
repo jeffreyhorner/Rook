@@ -1,6 +1,6 @@
 Response <- setRefClass(
     'Response',
-    fields = c('body','length','status','headers','length'),
+    fields = c('body','status','headers','length'),
     methods = list(
 	initialize = function(body='',status=200,headers=list(),...){
 	    .self$status <- as.integer(status)
