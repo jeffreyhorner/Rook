@@ -265,43 +265,53 @@ Rhttpd <- setRefClass(
 		}
 	    )
 	},
-	build_env = function(appPath,path,query,postBody,headers){
-	    env <- new.env(hash=TRUE,parent=emptyenv())
+   build_env = function(appPath,path,query,postBody,headers){
+      env <- new.env(hash=TRUE,parent=emptyenv())
 
-	    parse_headers(headers,env)
+      parse_headers(headers,env)
 
-	    # remove HTTP_ from content length and type
-	    if (exists('HTTP_CONTENT_LENGTH',env) && exists('HTTP_CONTENT_TYPE',env)){
-		assign('CONTENT_LENGTH',env$`HTTP_CONTENT_LENGTH`,env)
-		assign('CONTENT_TYPE',env$`HTTP_CONTENT_TYPE`,env)
-		rm('HTTP_CONTENT_LENGTH','HTTP_CONTENT_TYPE',envir=env)
-	    }
+      # remove HTTP_ from content length and type
+      if (exists('HTTP_CONTENT_LENGTH',env) && exists('HTTP_CONTENT_TYPE',env)){
+         assign('CONTENT_LENGTH',env$`HTTP_CONTENT_LENGTH`,env)
+         assign('CONTENT_TYPE',env$`HTTP_CONTENT_TYPE`,env)
+         rm('HTTP_CONTENT_LENGTH','HTTP_CONTENT_TYPE',envir=env)
+      }
 
-	    assign('SCRIPT_NAME',appPath,env)
-	    assign('PATH_INFO',sub(appPath,'',path,fixed=TRUE),env)
-	    assign('QUERY_STRING',
-		ifelse(is.null(query),
-		    '',
-		    paste(names(query),query,sep='=',collapse='&')
-		    ),
-		env
-		)
-	    assign('REQUEST_METHOD',ifelse(is.null(postBody),'GET','POST'),env)
+      assign('SCRIPT_NAME',appPath,env)
+      assign('PATH_INFO',sub(appPath,'',path,fixed=TRUE),env)
 
-	    hostport <- strsplit(get('HTTP_HOST',env),':',fixed=TRUE)[[1]]
+      # The R internal web server unescapes the query, so in order
+      # abid the Rook spec, we have to do things in reverse:
+      #
+      # 1. escape the query object so that subsequent URI building
+      #    methods will add the correct query string.
 
-	    assign('SERVER_NAME',hostport[1],env)
-	    assign('SERVER_PORT',hostport[2],env)
+      # 2. Go ahead and assign the Rook::Request specific query list
+      #    object since there's no need to re-parse.
+      assign('QUERY_STRING',
+         ifelse(is.null(query),
+            '',
+            paste(names(query),Utils$escape(query),sep='=',collapse='&')
+            ),
+         env
+         )
+      assign('rook.request.query_list',as.list(query),env)
+      assign('REQUEST_METHOD',ifelse(is.null(postBody),'GET','POST'),env)
 
-	    assign('rook.version',packageDescription('Rook',fields='Version'),env)
-	    assign('rook.url_scheme','http',env)
-	    assign('rook.input',RhttpdInputStream$new(postBody),env)
-	    assign('rook.errors',RhttpdErrorStream$new(),env)
+      hostport <- strsplit(get('HTTP_HOST',env),':',fixed=TRUE)[[1]]
 
-	    if (debug()>1)
-		str(as.list(env))
-	    env
-	},
+      assign('SERVER_NAME',hostport[1],env)
+      assign('SERVER_PORT',hostport[2],env)
+
+      assign('rook.version',packageDescription('Rook',fields='Version'),env)
+      assign('rook.url_scheme','http',env)
+      assign('rook.input',RhttpdInputStream$new(postBody),env)
+      assign('rook.errors',RhttpdErrorStream$new(),env)
+
+      if (debug()>1)
+         str(as.list(env))
+      env
+   },
    handler = function(appName,path,query,postBody,headers){
       if (debug()>0){
          cat('Request:',path,'\n')

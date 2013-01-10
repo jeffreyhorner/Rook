@@ -83,21 +83,25 @@ Utils <- setRefClass(
 	    DEFAULT_SEP <<- '[&;] *'
 	    callSuper(...)
 	},
-	escape = function(s=NULL) { 
-	    if (is.null(s)) base::stop("Need a character vector argument")
-	    x <- strsplit(s,"")[[1L]]
-	    z <- grep('[^ a-zA-Z0-9_.-]',x,perl=TRUE)
-	    if (length(z)){
-		y <- sapply(x[z],function(i) paste('%',paste(toupper(as.character(charToRaw(i))),collapse='%'),sep=''))
-		x[z] <- y
-	    }
-	    s <- paste(x,collapse='')
-	    chartr(' ','+',s)
-	},
-	unescape = function(s=NULL){
-	    if(is.null(s)) base::stop("Need a character vector argument")
-	    utils::URLdecode(chartr('+',' ',s))
-	},
+   escape = function(s=NULL) {
+      if (is.null(s)) base::stop("Need a character vector argument")
+      unlist(lapply(s,function(s){
+            x <- strsplit(s,"")[[1L]]
+            z <- grep('[^ a-zA-Z0-9_.-]',x,perl=TRUE)
+            if (length(z)){
+               y <- sapply(x[z],function(i) paste('%',paste(toupper(as.character(charToRaw(i))),collapse='%'),sep=''))
+               x[z] <- y
+            }
+            s <- paste(x,collapse='')
+            chartr(' ','+',s)
+      }))
+   },
+   unescape = function(s=NULL){
+      if(is.null(s)) base::stop("Need a character vector argument")
+      unlist(lapply(s,function(s)
+            utils::URLdecode(chartr('+',' ',s))
+      ))
+   },
 	parse_query = function(qs=NULL, d=DEFAULT_SEP) {
 	    if (is.null(qs)) base::stop("Need a character vector argument")
 
