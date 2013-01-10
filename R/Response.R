@@ -29,9 +29,6 @@ Response <- setRefClass(
          header('Location',target)
       },
       finish = function(){
-         if (is.character(body) && body=='')
-            body <<- character()
-
          list(
             status=status,
             headers = as.list(headers),

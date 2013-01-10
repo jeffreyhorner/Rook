@@ -104,7 +104,9 @@ Server <- setRefClass(
          # If body is named, then better be a file.
          if (!is.null(names(res$body)) && names(res$body)[1] == 'file'){
             sendBin(readBin(res$body[1],'raw',n=file.info(res$body[1])$size))
-         } else if (length(res$body)>0){
+         } else {
+            if ((is.character(res$body) && nchar(res$body)>0) || 
+                (is.raw(res$body) && length(res$body)>0) )
             sendBin(res$body)
          }
 
