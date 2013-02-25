@@ -4,8 +4,8 @@ Brewery <- setRefClass(
    fields = c('url','root','opt'),
    methods = list(
       initialize = function(url,root,...){
-         url <<- paste('^',url,sep='')
-         root <<- root
+         url <<- sub("/+$","",url)
+         root <<- normalizePath(root,mustWork=TRUE)
          opts <- list(...)
          if (length(opts)>0){
             opt <<- try(list2env(opts),silent=TRUE)
@@ -19,11 +19,18 @@ Brewery <- setRefClass(
       call = function(env){
          req <- Rook::Request$new(env)
          res <- Rook::Response$new()
-         opt[['req']] <<- req;
-         opt[['res']] <<- res;
-         path = env[["PATH_INFO"]]
-         file_path = file.path(root,path)
-         if (grepl(url,path) && !grepl(paste(url,'$',sep=''),path) && file.exists(file_path)){
+         opt[['req']] <<- req
+         opt[['res']] <<- res
+         path <- env[["PATH_INFO"]]
+         file_path <- try(
+            normalizePath(file.path(root,path),mustWork=TRUE),
+            silent=TRUE
+         )
+         if (!inherits(file_path, 'try-error') &&
+             grepl(paste('^',url,sep=''),path) &&
+             !grepl(paste('^',url,'$',sep=''),path) &&
+             grepl(paste('^',root,url,.Platform$file.sep,sep=''),file_path)){
+
             oldwd <- setwd(dirname(file_path))
             on.exit(setwd(oldwd))
             res$write(
