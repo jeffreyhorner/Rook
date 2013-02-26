@@ -1,8 +1,8 @@
 Package: Rook
 Type: Package
 Title: Rook - a web server interface for R
-Version: 1.0-9
-Date: 2013-01-10
+Version: 1.1-0
+Date: 2013-02-26
 Author: Jeffrey Horner <jeffrey.horner@gmail.com>
 Maintainer: Jeffrey Horner <jeffrey.horner@gmail.com>
 Description: This package contains the Rook specification and

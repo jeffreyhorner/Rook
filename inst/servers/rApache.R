@@ -114,3 +114,32 @@ Server <- setRefClass(
       }
    )
 )$new()
+
+Request$methods(
+   POST = function() {
+      if (exists('rook.request.form_list',env))
+         return(env[['rook.request.form_list']])
+      postvar <- base::get('POST','rapache')
+      filevar <- base::get('FILES','rapache')
+
+      if (length(postvar) <= 0 && length(filevar) <= 0) return(NULL)
+
+      if (length(filevar) > 0){
+         if (length(postvar) <= 0) postvar <- list()
+         for (n in names(filevar)){
+            if (length(filevar[[n]])>0){
+               postvar[[n]] <- list(
+                  filename = filevar[[n]]$name,
+                  tempfile = filevar[[n]]$tmp_name,
+                  content_type = Mime$mime_type(Mime$file_extname(filevar[[n]]$name))
+               )
+            }
+         }
+      }
+      for (n in names(postvar)){
+         if (is.null(postvar[[n]])) postvar[[n]] <- NULL
+      }
+      env[['rook.request.form_list']] <<- postvar
+      postvar
+   }
+)
