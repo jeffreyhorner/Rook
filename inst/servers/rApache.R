@@ -97,6 +97,8 @@ Server <- setRefClass(
             return(HTTP_INTERNAL_SERVER_ERROR)
          }
 
+         setStatus(res$status)
+
          setContentType(res$headers$`Content-Type`)
          res$headers$`Content-Type` <- NULL
          lapply(names(res$headers),function(n)setHeader(n,res$headers[[n]]))
@@ -110,7 +112,7 @@ Server <- setRefClass(
             sendBin(res$body)
          }
 
-         ifelse(res$status==200,OK,res$status)
+         OK
       }
    )
 )$new()
