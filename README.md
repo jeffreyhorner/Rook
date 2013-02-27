@@ -91,9 +91,9 @@ The Input Stream
 ----------------
 
 The rook.input variable must contain an object created from a reference
-class and respond to readLines, read, and rewind:
+class and respond to read_lines, read, and rewind:
 
-readLines: takes one argument, the number of lines to read. Includes partial ending line.
+read_lines: takes one argument, the number of lines to read. Includes partial ending line.
 read: takes one argument, the number of bytes to read. Returns a raw vector.
 rewind: Rewinds the input stream back to the beginning.
 
