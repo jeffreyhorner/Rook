@@ -42,7 +42,6 @@ File <- setRefClass(
 	    )
 	},
 	indexdir = function(){
-		#body <- paste("/", c(".", "..",list.files(path)), sep="", collapse="\n")
     body <- paste(list.files(path), collapse="\n")
 		list(
 			status=200L,
