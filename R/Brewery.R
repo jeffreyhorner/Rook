@@ -4,6 +4,7 @@ Brewery <- setRefClass(
    fields = c('url','root','opt'),
    methods = list(
       initialize = function(url,root,...){
+         library("brew")
          url <<- sub("/+$","",url)
          root <<- normalizePath(root,mustWork=TRUE)
          opts <- list(...)
@@ -34,7 +35,7 @@ Brewery <- setRefClass(
             oldwd <- setwd(dirname(file_path))
             on.exit(setwd(oldwd))
             res$write(
-               paste(capture.output(brew(basename(file_path),envir=opt)),
+               paste(capture.output(brew::brew(basename(file_path),envir=opt)),
                   collapse="\n")
                )
             res$finish()
