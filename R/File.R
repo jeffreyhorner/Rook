@@ -9,18 +9,25 @@ File <- setRefClass(
 	call = function(env){
 	    path_info <<- Utils$unescape(env[["PATH_INFO"]])
 
-	    if (length(grep('..',path_info,fixed=TRUE)))
-		return(forbidden())
+	    if (length(grep('..',path_info,fixed=TRUE))){
+			return(forbidden())
+		}
 
 	    path <<- normalizePath(file.path(root,path_info))
 
-
-	    if (file_test('-d',path))
-		forbidden()
-	    else if (file.exists(path))
-		serving()
-	    else
-		not_found()
+	    if (file_test('-d',path)){
+			newpath <- file.path(path, "index.html")
+			if(file.exists(newpath)){
+				path <<- normalizePath(newpath)
+				serving()
+			} else {
+				return(indexdir())
+			}
+		} else if (file.exists(path)){
+			serving()
+		} else {
+			not_found()
+		}
 	},
 	forbidden = function(){
 	    body = 'Forbidden\n'
@@ -33,6 +40,17 @@ File <- setRefClass(
 		),
 		body = body
 	    )
+	},
+	indexdir = function(){
+		body = paste("/", c(".", "..",list.files(path)), sep="", collapse="\n")
+		list(
+			status=200L,
+			headers = list(
+				'Content-type' = 'text/plain',
+				'Content-Length'  = as.character(nchar(body))
+			),
+			body = body
+		)		
 	},
 	serving = function(){
 	    fi <- file.info(path)
