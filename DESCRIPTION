@@ -8,6 +8,7 @@ Maintainer: Jeffrey Horner <jeffrey.horner@gmail.com>
 Description: This package contains the Rook specification and
  convenience software for building and running Rook applications. To
  get started, be sure and read the 'Rook' help file first.
-Depends: R (>= 2.13.0), utils, tools, methods, brew
+Depends: R (>= 2.13.0)
+Imports: utils, tools, methods, brew
 License: GPL-2
 LazyLoad: yes
