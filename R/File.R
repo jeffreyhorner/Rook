@@ -16,6 +16,9 @@ File <- setRefClass(
 	    path <<- normalizePath(file.path(root,path_info))
 
 	    if (file_test('-d',path)){
+        if(!grepl(".*/$", path_info)){
+          return(redirect(paste(env[["SCRIPT_NAME"]], env[["PATH_INFO"]], "/", sep=""), status=301))
+        }
 			newpath <- file.path(path, "index.html")
 			if(file.exists(newpath)){
 				path <<- normalizePath(newpath)
@@ -52,6 +55,11 @@ File <- setRefClass(
 			body = body
 		)		
 	},
+  redirect = function(location){
+    res <- Response$new()
+    res$redirect(location, status=302)
+    res$finish()    
+  },
 	serving = function(){
 	    fi <- file.info(path)
 	    if (fi$size > 0) {
