@@ -296,7 +296,12 @@ Rhttpd <- setRefClass(
          env
          )
       assign('rook.request.query_list',as.list(query),env)
-      assign('REQUEST_METHOD',ifelse(is.null(postBody),'GET','POST'),env)
+      
+      if(exists("HTTP_REQUEST_METHOD", env)){
+        assign('REQUEST_METHOD',get("HTTP_REQUEST_METHOD", env) ,env)
+      } else {      
+        assign('REQUEST_METHOD',ifelse(is.null(postBody),'GET','POST'),env)
+      }
 
       hostport <- strsplit(get('HTTP_HOST',env),':',fixed=TRUE)[[1]]
 
