@@ -125,9 +125,15 @@ Utils <- setRefClass(
 				# handle array parameters
 				paramName <- substr(i,1,m-1)
 				paramValue <- unescape(substr(i,m+1,ilen))
-				if (grepl("\\[\\]$", paramName) && paramName %in% names(params$params)) {
-				   params$params[[paramName]] <- c(params$params[[paramName]], paramValue)
-				} else {
+				paramSet <- FALSE
+				if (grepl("\\[\\]$", paramName)) {
+				   paramName <- sub("\\[\\]$", "", paramName)
+				   if (paramName %in% names(params$params)) {
+					params$params[[paramName]] <- c(params$params[[paramName]], paramValue)
+					paramSet <- TRUE
+				   }
+				}
+				if (!paramSet) {
 				   params$params[[paramName]] <- paramValue
 				}
 			    }
@@ -374,9 +380,15 @@ Multipart <- setRefClass(
 
 				# handle array parameters
 				paramValue <- Utils$escape(rawToChar(value[1:len]))
-				if (grepl("\\[\\]$", name) && name %in% names(params)) {
-				   params[[name]] <- c(params[[name]], paramValue)
-				} else {
+				paramSet <- FALSE
+				if (grepl("\\[\\]$", name)) {
+				   name <- sub("\\[\\]$", "", name)
+				   if (name %in% names(params)) {
+					params[[name]] <- c(params[[name]], paramValue)
+					paramSet <- TRUE
+				   }
+				}
+				if (!paramSet) {
 				   params[[name]] <- paramValue
 				}
 			    }
