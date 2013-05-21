@@ -122,7 +122,14 @@ Utils <- setRefClass(
 			    if (m == ilen){
 				params$params[[i]] <- ''
 			    } else {
-				params$params[[substr(i,1,m-1)]] <- unescape(substr(i,m+1,ilen))
+				# handle array parameters
+				paramName <- substr(i,1,m-1)
+				paramValue <- unescape(substr(i,m+1,ilen))
+				if (grepl("\\[\\]$", paramName) && paramName %in% names(params$params)) {
+				   params$params[[paramName]] <- c(params$params[[paramName]], paramValue)
+				} else {
+				   params$params[[paramName]] <- paramValue
+				}
 			    }
 			}
 		    } else {
@@ -364,7 +371,14 @@ Multipart <- setRefClass(
 				# Trim trailing EOL
 				if (len > 2 && length(Utils$raw.match(EOL,value[(len-1):len],all=FALSE)))
 				    len <- len -2
-				params[[name]] <- Utils$escape(rawToChar(value[1:len]))
+
+				# handle array parameters
+				paramValue <- Utils$escape(rawToChar(value[1:len]))
+				if (grepl("\\[\\]$", name) && name %in% names(params)) {
+				   params[[name]] <- c(params[[name]], paramValue)
+				} else {
+				   params[[name]] <- paramValue
+				}
 			    }
 			} 
 			break
