@@ -118,6 +118,11 @@ Server <- setRefClass(
 )$new()
 
 Request$methods(
+   GET = function(){
+      if (!exists('rook.request.query_list',env))
+         env[['rook.request.query_list']] <<- base::get('GET','rapache')
+      env[['rook.request.query_list']]
+   },
    POST = function() {
       if (exists('rook.request.form_list',env))
          return(env[['rook.request.form_list']])
