@@ -283,11 +283,8 @@ Rhttpd <- setRefClass(
       # The R internal web server unescapes the query, so in order
       # abid the Rook spec, we have to do things in reverse:
       #
-      # 1. escape the query object so that subsequent URI building
-      #    methods will add the correct query string.
-
-      # 2. Go ahead and assign the Rook::Request specific query list
-      #    object since there's no need to re-parse.
+      # escape the query object so that subsequent URI building
+      # methods will add the correct query string.
       assign('QUERY_STRING',
          ifelse(is.null(query),
             '',
@@ -295,7 +292,6 @@ Rhttpd <- setRefClass(
             ),
          env
          )
-      assign('rook.request.query_list',as.list(query),env)
       
       if(exists("HTTP_REQUEST_METHOD", env)){
         assign('REQUEST_METHOD',get("HTTP_REQUEST_METHOD", env) ,env)
