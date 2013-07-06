@@ -6,7 +6,6 @@
          readLines(n=n,warn=FALSE)
       },
       read = function(l = -1L){
-         if (l <= 0 ) return(raw())
          receiveBin(l)
       },
       rewind = function(){
