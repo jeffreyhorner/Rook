@@ -206,7 +206,7 @@ Utils <- setRefClass(
 	rfc2822 = function(ts=NULL){
 	    if (is.null(ts) || !inherits(ts,'POSIXt'))
 		base::stop("Need a POSIXt object")
-	    format(ts,format="%a, %d %b %Y %T GMT",tz='GMT')
+	    format(ts,format="%a, %d %b %Y %H:%M:%S GMT",tz='GMT')
 	},
 	status_code = function(status=NULL){
 	    if (is.null(status) || status == '') return(as.integer(500))
