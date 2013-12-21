@@ -71,16 +71,13 @@ Server <- setRefClass(
          hostport <- strsplit(get('HTTP_HOST',env),':',fixed=TRUE)[[1]]
 
          assign('SERVER_NAME',hostport[1],env)
-         assign('SERVER_PORT',hostport[2],env)
+         if ('port' %in% names(SERVER))
+            assign('SERVER_PORT',SERVER$port,env)
+         else
+            assign('SERVER_PORT',hostport[2],env)
 
          assign('rook.version',packageDescription('Rook',fields='Version'),env)
-         if (exists('HTTP_ORIGIN',env)){
-            assign(
-               'rook.url_scheme',
-               strsplit(get('HTTP_ORIGIN',env),':',fixed=TRUE)[[1]][1]
-               ,env
-            )
-         }
+         assign('rook.url_scheme', ifelse(isTRUE(SERVER$HTTPS),'https','http'),env)
          assign('rook.input',.rApacheInputStream$new(),env)
          assign('rook.errors',.rApacheErrorStream$new(),env)
 
