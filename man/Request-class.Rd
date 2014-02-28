@@ -112,7 +112,7 @@ rm(s)
     \item{\code{script_name(s=NULL)}:}{ Returns the script name of the application, e.g. '/custom/multi'. Also, if \code{s} is not NULL, sets the script name to \code{s}. }
     \item{\code{content_type()}:}{ Returns the content-type header value as a character string. }
     \item{\code{delete()}:}{ Returns TRUE if the current request is 'DELETE'. }
-    \item{\code{path_info(s=NULL)}:}{ Returns the portion of the url after the script name as a character string. If \code{s} is not NULL, sets the path info th \code{s}.}
+    \item{\code{path_info(s=NULL)}:}{ Returns the portion of the url after the script name as a character string. If \code{s} is not NULL, sets the path info to \code{s}.}
   }
 }
 \seealso{
