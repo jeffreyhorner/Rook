@@ -13,6 +13,12 @@ File <- setRefClass(
 			return(forbidden())
 		}
 
+      if (grepl('#',path_info))
+        path_info <- strsplit(path_info,'#')[[1]]
+
+      if (grepl('\\?',path_info))
+        path_info <- strsplit(path_info,'\\?',)[[1]]
+
 	    path <<- normalizePath(file.path(root,path_info))
 
 	    if (file_test('-d',path)){
