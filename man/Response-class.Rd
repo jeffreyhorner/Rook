@@ -33,7 +33,8 @@ rm(s)
 \keyword{classes}
 \section{Methods}{
   \describe{
-    \item{\code{header(key, value)}:}{ Sets an HTTP header for the response.Both \code{key} and \code{value} must be character strings. if \code{value} is missing, then the \code{header} value is returned.}
+    \item{\code{header(key, value)}:}{ Sets an HTTP header for the
+      response. Both \code{key} and \code{value} must be character strings. If \code{value} is missing, then the \code{header} value is returned.}
     \item{\code{redirect(target, status=302)}:}{ Sets up an HTTP redirect to the \code{target} url. }
     \item{\code{write(str)}:}{ Takes a character vector and appends it to the response body. }
     \item{\code{new(body='', status=200, headers=list())}:}{ Create a new Response object. \code{body} is a character vector, \code{status} is an HTTP status value. \code{headers} is a named list.}
