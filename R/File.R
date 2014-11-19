@@ -14,10 +14,10 @@ File <- setRefClass(
 		}
 
       if (grepl('#',path_info))
-        path_info <- strsplit(path_info,'#')[[1]]
+        path_info <<- strsplit(path_info,'#')[[1]]
 
       if (grepl('\\?',path_info))
-        path_info <- strsplit(path_info,'\\?',)[[1]]
+        path_info <<- strsplit(path_info,'\\?',)[[1]]
 
 	    path <<- normalizePath(file.path(root,path_info))
 

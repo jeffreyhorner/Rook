@@ -102,50 +102,49 @@ Utils <- setRefClass(
             utils::URLdecode(chartr('+',' ',s))
       ))
    },
-	parse_query = function(qs=NULL, d=DEFAULT_SEP) {
-	    if (is.null(qs)) base::stop("Need a character vector argument")
+   parse_query = function(qs=NULL, d=DEFAULT_SEP) {
+      if (is.null(qs)) base::stop("Need a character vector argument")
+      x <- strsplit(qs,d,perl=TRUE)[[1L]]
+      if (length(x) == 0) return(list())
 
-	    x <- strsplit(qs,d,perl=TRUE)[[1L]]
-	    if (length(x) == 0) return(list())
-
-	    z <- x != ''
-	    params <- new.env()
-            params$params <- list()
-	    if (length(z)){
-		parseEqual <- function(i,params){
-		    m <- regexpr('=',i)[1L]
-		    if (m > 0){
-			if (m == 1){
-			    params$params[['']] <- unescape(i)
-			} else { 
-			    ilen <- nchar(i)
-			    if (m == ilen){
-				params$params[[i]] <- ''
-			    } else {
-				# handle array parameters
-				paramName <- substr(i,1,m-1)
-				paramValue <- unescape(substr(i,m+1,ilen))
-				paramSet <- FALSE
-				if (grepl("\\[\\]$", paramName)) {
-				   paramName <- sub("\\[\\]$", "", paramName)
-				   if (paramName %in% names(params$params)) {
-					params$params[[paramName]] <- c(params$params[[paramName]], paramValue)
-					paramSet <- TRUE
-				   }
-				}
-				if (!paramSet) {
-				   params$params[[paramName]] <- paramValue
-				}
-			    }
-			}
-		    } else {
-			params$params[[i]] <- NA
-		    }
-		}
-		lapply(x[z],parseEqual,params)
-	    }
-	    params$params
-	},
+      z <- x != ''
+      params <- new.env()
+      params$params <- list()
+      if (length(z)){
+        parseEqual <- function(i,params){
+          m <- regexpr('=',i)[1L]
+          if (m > 0){
+            if (m == 1){
+              params$params[['']] <- unescape(i)
+            } else { 
+              paramName <- substr(i,1,m-1)
+              ilen <- nchar(i)
+              if (ilen == m) {
+                params$params[[paramName]] <- ''
+              } else {
+                # handle array parameters
+                paramValue <- unescape(substr(i,m+1,ilen))
+                paramSet <- FALSE
+                if (grepl("\\[\\]$", paramName)) {
+                  paramName <- sub("\\[\\]$", "", paramName)
+                  if (paramName %in% names(params$params)) {
+                    params$params[[paramName]] <- c(params$params[[paramName]], paramValue)
+                    paramSet <- TRUE
+                  }
+                }
+                if (!paramSet) {
+                  params$params[[paramName]] <- paramValue
+                }
+              }
+            }
+          } else {
+            params$params[[i]] <- NA
+          }
+        }
+        lapply(x[z],parseEqual,params)
+      }
+      params$params
+   },
 	#parse_nested_query = function() {},
 	#normalize_params = function () {},
 	build_query = function(params=NULL) {
