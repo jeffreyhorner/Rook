@@ -1,7 +1,7 @@
 Rook: A web server interface for R
 =======================================
 
-This pecification defines the interface between web servers and R applications.
+This specification defines the interface between web servers and R applications.
 
 Rook applications
 -----------------
