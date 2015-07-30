@@ -27,7 +27,7 @@ Here is a basic Rook application as a closure that implements 'hello world':
 	)
     }
 
-And the equivalent referenc class example:
+And the equivalent reference class example:
 
     setRefClass(
 	'HelloWorld',
