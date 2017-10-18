@@ -108,7 +108,7 @@ Rhttpd <- setRefClass(
 	},
 	finalize = function(){
 	    if (length(appList) == 0) return()
-	    for (i in 1:length(appList)){
+	    for (i in rev(1:length(appList))){
 		remove(appList[[i]])
 	    }
 	},
