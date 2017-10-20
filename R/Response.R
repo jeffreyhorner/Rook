@@ -15,8 +15,8 @@ Response <- setRefClass(
          callSuper(...)
       },
       header = function(key,value) {
-         if (missing(value)) headers[[key]]
-         else headers[[key]] <<- value
+         if (missing(value)) headers[[tolower(key)]]
+         else headers[[tolower(key)]] <<- value
       },
       set_cookie = function(key,value){
          Utils$set_cookie_header(headers,key,value)

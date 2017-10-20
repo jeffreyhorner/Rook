@@ -355,8 +355,8 @@ Rhttpd <- setRefClass(
          if (is.character(res$body) && length(res$body) > 1){
             res$body <- paste(res$body,collapse='')
          }
-         contentType <- res$headers$`Content-Type`;
-         res$headers$`Content-Type` <- NULL;
+         contentType <- res$headers$`content-type`;
+         res$headers$`content-type` <- NULL;
 
          # The internal web server expects a list like the below,
          # and the position of each element is important.
@@ -375,7 +375,7 @@ Rhttpd <- setRefClass(
 
          # Rhttpd doesn't allow Content-Length in the headers, so delete
          # it as well
-         res$headers$`Content-Length` <- NULL;
+         res$headers$`content-length` <- NULL;
          if (length(res$headers)>0){
             ret$headers <- paste(names(res$headers),': ',res$headers,sep='')
          }
