@@ -116,7 +116,7 @@ Rhttpd <- setRefClass(
 	    paste('http://',listenAddr,':',listenPort,appList[[i]]$path,sep='')
 	},
 	launch = function(...){
-	    .self$start(quiet=TRUE)		
+	    .self$start(quiet=TRUE)
 	    # Try to create a new app from the supplied arguments
 	    app <- RhttpdApp$new(...)
 	    if (add(app)){
@@ -156,9 +156,9 @@ Rhttpd <- setRefClass(
 
       if(grepl('rstudio',base::.Platform$GUI,ignore.case=TRUE)){
          # RStudio has already set up host and port
-         listenPort <<- tools:::httpdPort
+         listenPort <<- tools:::httpdPort()
          if (!missing(port))
-            warning("RStudio has already started the web server on port ",tools:::httpdPort)
+            warning("RStudio has already started the web server on port ",tools:::httpdPort())
          return(invisible())
       }
 
@@ -208,15 +208,15 @@ Rhttpd <- setRefClass(
 		#.self$httpdOrig <- tools:::httpd
 		#assignInNamespace(
 		#    app$name,
-		#    function(path,query,postBody,headers) 
-		#	.self$handler(app$name,path,query,postBody,headers), 
+		#    function(path,query,postBody,headers)
+		#	.self$handler(app$name,path,query,postBody,headers),
 		#    'tools'
 		#)
 	    } else {
 		assign(
-		    app$name, 
-		    function(path,query,postBody,headers) 
-			.self$handler(app$name,path,query,postBody,headers), 
+		    app$name,
+		    function(path,query,postBody,headers)
+			.self$handler(app$name,path,query,postBody,headers),
 		    tools:::.httpd.handlers.env
 		)
 	    }
@@ -292,10 +292,10 @@ Rhttpd <- setRefClass(
             ),
          env
          )
-      
+
       if(exists("HTTP_REQUEST_METHOD", env)){
         assign('REQUEST_METHOD',get("HTTP_REQUEST_METHOD", env) ,env)
-      } else {      
+      } else {
         assign('REQUEST_METHOD',ifelse(is.null(postBody),'GET','POST'),env)
       }
 
