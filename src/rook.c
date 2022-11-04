@@ -51,12 +51,12 @@ SEXP rawmatch( SEXP needle, SEXP haystack, SEXP allMatches){
    return newans;
 }
 
-R_CallMethodDef callMethods[]  = {
+R_CallMethodDef CallEntries[]  = {
    {"rawmatch", (DL_FUNC) &rawmatch, 3},
    {NULL, NULL, 0}
 };
 
-void R_init_Rook(DllInfo *info) {
-   R_registerRoutines(info, NULL, callMethods, NULL, NULL);
+void R_init_Rook(DllInfo *dll) {
+   R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
    R_useDynamicSymbols(dll, FALSE);
 }
