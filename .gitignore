@@ -1,4 +1,6 @@
 .Rproj.user
 .Rhistory
 .RData
-.lvimrc
+.Ruserdata
+Rook*.tar.gz
+Rook*Rcheck
